@@ -4,6 +4,9 @@ on:
   push:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: windows-latest
@@ -28,3 +31,23 @@ jobs:
         with:
           name: capturi
           path: shots/*.png
+      - name: Publicare pe ramura build si in Release
+        if: github.ref == 'refs/heads/main'
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $sha = "${{ github.sha }}".Substring(0,7)
+          New-Item -ItemType Directory -Force out | Out-Null
+          Copy-Item dist\*.exe out\
+          if (Test-Path shots) { Copy-Item shots\*.png out\ }
+          Set-Location out
+          git init -q -b build
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Build $sha"
+          git push -f -q "https://x-access-token:$env:GH_TOKEN@github.com/${{ github.repository }}.git" build
+          Set-Location ..
+          gh release delete ultima-versiune --yes --cleanup-tag 2>$null
+          gh release create ultima-versiune dist\RecuperareFisiere.exe dist\SanatatePC.exe --title "Ultima versiune ($sha)" --notes "Recuperare Fișiere și Sănătate PC - descarcă fișierele .exe de mai jos." --latest
