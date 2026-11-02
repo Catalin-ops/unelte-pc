@@ -203,7 +203,7 @@
       <Grid.ColumnDefinitions><ColumnDefinition Width="250"/><ColumnDefinition Width="20"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
 
       <Border Style="{StaticResource Card}" Padding="10">
-        <ListBox x:Name="NavList" Background="Transparent" BorderThickness="0" ItemContainerStyle="{StaticResource NavItem}"
+        <ListBox x:Name="NavList" Foreground="#E6EAF2" Background="Transparent" BorderThickness="0" ItemContainerStyle="{StaticResource NavItem}"
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
           <ListBox.ItemTemplate>
             <DataTemplate>
@@ -235,7 +235,7 @@
           </StackPanel>
           <Button x:Name="ActionBtn" Grid.Column="1" Style="{StaticResource Primary}" VerticalAlignment="Top" Visibility="Collapsed"/>
         </Grid>
-        <ListBox x:Name="CardList" Grid.Row="1" Background="Transparent" BorderThickness="0" ItemContainerStyle="{StaticResource CardItem}"
+        <ListBox x:Name="CardList" Foreground="#E6EAF2" Grid.Row="1" Background="Transparent" BorderThickness="0" ItemContainerStyle="{StaticResource CardItem}"
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.CanContentScroll="False">
             <ListBox.ItemTemplate>
               <DataTemplate>
@@ -285,7 +285,7 @@
       <Border Style="{StaticResource Card}">
         <DockPanel>
           <TextBlock DockPanel.Dock="Top" Text="Discuri" Style="{StaticResource H2}"/>
-          <ListBox x:Name="DiskList" Background="Transparent" BorderThickness="0" ItemContainerStyle="{StaticResource DiskItem}"
+          <ListBox x:Name="DiskList" Foreground="#E6EAF2" Background="Transparent" BorderThickness="0" ItemContainerStyle="{StaticResource DiskItem}"
                    ScrollViewer.HorizontalScrollBarVisibility="Disabled">
             <ListBox.ItemTemplate>
               <DataTemplate>

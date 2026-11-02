@@ -274,7 +274,7 @@
               </StackPanel>
             </Button>
           </Grid>
-          <ListBox x:Name="DriveList" Background="Transparent" BorderThickness="0" ItemContainerStyle="{StaticResource DriveItem}"
+          <ListBox x:Name="DriveList" Foreground="#E6EAF2" Background="Transparent" BorderThickness="0" ItemContainerStyle="{StaticResource DriveItem}"
                    ScrollViewer.HorizontalScrollBarVisibility="Disabled">
             <ListBox.ItemTemplate>
               <DataTemplate>
@@ -390,7 +390,7 @@
       <Border Grid.Row="1" Style="{StaticResource Card}" Margin="0,14,0,14">
         <DockPanel>
           <TextBlock DockPanel.Dock="Top" Text="Găsite până acum" Style="{StaticResource H2}" Margin="0,0,0,10"/>
-          <ListBox x:Name="LiveList" Background="Transparent" BorderThickness="0" ItemContainerStyle="{StaticResource PlainItem}"
+          <ListBox x:Name="LiveList" Foreground="#E6EAF2" Background="Transparent" BorderThickness="0" ItemContainerStyle="{StaticResource PlainItem}"
                    ScrollViewer.HorizontalScrollBarVisibility="Disabled">
             <ListBox.ItemTemplate>
               <DataTemplate>

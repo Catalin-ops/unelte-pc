@@ -52,12 +52,26 @@ namespace InfoPcDisk
             app.Run(m.win);
         }
 
+        static void FitToScreen(Window w)
+        {
+            Rect wa = SystemParameters.WorkArea;
+            if (w.Width > wa.Width - 20 || w.Height > wa.Height - 20)
+            {
+                w.MinWidth = Math.Min(w.MinWidth, wa.Width);
+                w.MinHeight = Math.Min(w.MinHeight, wa.Height);
+                w.Width = Math.Min(w.Width, wa.Width);
+                w.Height = Math.Min(w.Height, wa.Height);
+                w.WindowState = WindowState.Maximized;
+            }
+        }
+
         T F<T>(string name) where T : class { return win.FindName(name) as T; }
 
         void Build()
         {
             using (Stream s = Assembly.GetExecutingAssembly().GetManifestResourceStream("MainWindow.xaml"))
                 win = (Window)XamlReader.Load(s);
+            FitToScreen(win);
             nav = F<ListBox>("NavList");
             cardList = F<ListBox>("CardList");
             diskList = F<ListBox>("DiskList");

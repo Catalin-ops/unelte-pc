@@ -72,6 +72,19 @@ namespace InfoPcRecover
             app.Run(r.win);
         }
 
+        static void FitToScreen(Window w)
+        {
+            Rect wa = SystemParameters.WorkArea;
+            if (w.Width > wa.Width - 20 || w.Height > wa.Height - 20)
+            {
+                w.MinWidth = Math.Min(w.MinWidth, wa.Width);
+                w.MinHeight = Math.Min(w.MinHeight, wa.Height);
+                w.Width = Math.Min(w.Width, wa.Width);
+                w.Height = Math.Min(w.Height, wa.Height);
+                w.WindowState = WindowState.Maximized;
+            }
+        }
+
         T U<T>(string name) where T : class
         {
             object o;
@@ -93,6 +106,7 @@ namespace InfoPcRecover
         {
             using (Stream s = Assembly.GetExecutingAssembly().GetManifestResourceStream("MainWindow.xaml"))
                 win = (Window)XamlReader.Load(s);
+            FitToScreen(win);
             try { win.Icon = System.Windows.Interop.Imaging.CreateBitmapSourceFromHIcon(System.Drawing.Icon.ExtractAssociatedIcon(Assembly.GetExecutingAssembly().Location).Handle, Int32Rect.Empty, System.Windows.Media.Imaging.BitmapSizeOptions.FromEmptyOptions()); } catch (Exception) { }
 
             U<ListBox>("LiveList").ItemsSource = results;
