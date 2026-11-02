@@ -327,7 +327,7 @@
                   <TextBlock Text="Găsește și fișierele fără nume rămase pe disc. Pe un HDD mare poate dura ore." Style="{StaticResource Sub}" Margin="0,3,0,0"/>
                 </StackPanel>
               </RadioButton>
-              <CheckBox x:Name="OptFree" IsChecked="True" Content="Profundă: doar spațiul liber (sare peste fișierele existente)"/>
+              <CheckBox x:Name="OptFree" IsChecked="True" Content="Profundă: doar spațiul liber (mai rapid)"/>
               <CheckBox x:Name="OptSmall" IsChecked="True" Content="Ignoră pozele foarte mici (iconițe, miniaturi sub 20 KB)"/>
             </StackPanel>
           </Border>
