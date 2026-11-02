@@ -15,7 +15,16 @@ jobs:
       - name: Test pornire (verifica XAML si initializare)
         shell: powershell
         run: ./tests/smoke.ps1
+      - name: Capturi de ecran
+        shell: powershell
+        continue-on-error: true
+        run: ./tests/screenshot.ps1
       - uses: actions/upload-artifact@v4
         with:
           name: unelte-pc
           path: dist/*.exe
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: capturi
+          path: shots/*.png

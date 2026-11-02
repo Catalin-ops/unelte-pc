@@ -101,6 +101,11 @@ namespace InfoPcDisk
             return "acum " + (days / 365.25).ToString("0.#", RO) + " ani";
         }
 
+        static bool Junk(string s)
+        {
+            return string.IsNullOrEmpty(s) || Regex.IsMatch(s.Trim(), "^(None|Unknown|Undefined|Not Specified|To be filled.*|Default string|0+|N/A|Serial.*|SerNum.*)$", RegexOptions.IgnoreCase);
+        }
+
         static string Clean(string s)
         {
             if (s == null) return "";
@@ -474,7 +479,7 @@ namespace InfoPcDisk
             if (total > 0 && total < (8L << 30)) sum.Note("Sub 8 GB de RAM e puțin pentru Windows 10/11 modern. Un upgrade ar face calculatorul mult mai rapid.");
             if (mods.Count == 1 && slots >= 2) sum.Note("E montată o singură plăcuță: memoria merge pe un singur canal. Două plăcuțe identice (dual channel) aduc performanță vizibil mai bună.");
             bool mixed = false;
-            for (int i = 1; i < mods.Count; i++) if (caps[i] != caps[0] || parts[i].Trim() != parts[0].Trim()) mixed = true;
+            for (int i = 1; i < mods.Count; i++) if (caps[i] != caps[0] || (!Junk(parts[i]) && parts[i].Trim() != parts[0].Trim())) mixed = true;
             if (mixed) sum.Note("Plăcuțele sunt diferite (capacitate sau model). De obicei funcționează, dar perechile identice sunt mai stabile și mai rapide.");
             if (conf > 0 && rated > conf + 100) sum.Note("Memoria rulează sub viteza suportată. Din BIOS poți activa profilul XMP/EXPO, dacă placa de bază îl suportă.");
             sum.SetLevel(0, null);
@@ -490,7 +495,7 @@ namespace InfoPcDisk
             {
                 idx++;
                 string slot = S(m, "DeviceLocator");
-                string bank = S(m, "BankLabel");
+                string bank = Junk(S(m, "BankLabel")) ? "" : S(m, "BankLabel");
                 string maker = RamMaker(S(m, "Manufacturer"), S(m, "PartNumber"));
                 long cap = L(m, "Capacity");
                 long sp = L(m, "Speed"), cf = L(m, "ConfiguredClockSpeed");
@@ -499,11 +504,11 @@ namespace InfoPcDisk
                 Card c = sec.AddCard(maker + " " + Size(cap, false) + (t.Length > 0 ? " " + t : ""), "Slot: " + (slot.Length > 0 ? slot : "#" + idx) + (bank.Length > 0 && bank != slot ? " · " + bank : ""));
                 c.Badge = ff == 12 ? "SO-DIMM (laptop)" : ff == 8 ? "DIMM" : "";
                 c.Add("Producător", maker);
-                c.Add("Cod model", S(m, "PartNumber"));
+                if (!Junk(S(m, "PartNumber"))) c.Add("Cod model", S(m, "PartNumber"));
                 c.Add("Capacitate", Size(cap, false));
                 c.Add("Viteză", (sp > 0 ? sp + " MT/s" : "—") + (cf > 0 && cf != sp ? " (rulează la " + cf + ")" : ""));
                 string ser = S(m, "SerialNumber");
-                if (ser.Length > 0 && ser != "00000000" && !ser.StartsWith("Serial", StringComparison.OrdinalIgnoreCase)) c.Add("Număr serie", ser);
+                if (!Junk(ser)) c.Add("Număr serie", ser);
                 if (st.MemTestResult == 1) c.SetLevel(1, "Verifică"); else c.SetLevel(0, "Funcționează");
             }
             sec.Summary = Size(total, false) + (type.Length > 0 ? " " + type : "") + " · " + mods.Count + (mods.Count == 1 ? " plăcuță" : " plăcuțe") + (conf > 0 ? " · " + conf + " MT/s" : "");
@@ -610,7 +615,8 @@ namespace InfoPcDisk
                 else c.SetLevel(0, "Funcționează");
                 if (basic) c.Note("Placa video folosește driverul generic Microsoft: imagine lentă, fără accelerare 3D. Instalează driverul de pe site-ul NVIDIA, AMD sau Intel.");
                 if (err > 0) c.Note("Windows raportează o problemă la acest dispozitiv (cod " + err + " în Device Manager). Reinstalează driverul plăcii video.");
-                if (dd != DateTime.MinValue && (DateTime.Now - dd).TotalDays > 730 && !basic)
+                bool msDriver = S(g, "AdapterCompatibility").StartsWith("Microsoft", StringComparison.OrdinalIgnoreCase);
+                if (dd != DateTime.MinValue && (DateTime.Now - dd).TotalDays > 730 && !basic && !msDriver)
                     c.Note("Driverul are peste 2 ani. Un driver nou aduce remedieri și performanță mai bună, mai ales la jocuri.");
 
                 bool isNv = name.IndexOf("NVIDIA", StringComparison.OrdinalIgnoreCase) >= 0;
