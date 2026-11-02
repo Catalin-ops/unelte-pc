@@ -27,7 +27,7 @@ $secs = @(
     $c.GetMethod('StabilitySection').Invoke($null, @($st))
 )
 foreach ($sec in $secs) {
-    Write-Host ("[{0}] {1} — {2}" -f $sec.Status, $sec.Name, $sec.Summary)
+    Write-Host ("[{0}] {1} - {2}" -f $sec.Status, $sec.Name, $sec.Summary)
     foreach ($card in $sec.Cards) {
         Write-Host ("    {0} | {1} | {2}" -f $card.Title, $card.Subtitle, $card.Status)
         foreach ($kv in $card.Props) { Write-Host ("        {0}: {1}" -f $kv.Key, $kv.Value) }
