@@ -1,0 +1,21 @@
+name: Build
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compilare
+        shell: powershell
+        run: ./build.ps1
+      - name: Test pornire (verifica XAML si initializare)
+        shell: powershell
+        run: ./tests/smoke.ps1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: unelte-pc
+          path: dist/*.exe
