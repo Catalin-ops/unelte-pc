@@ -195,9 +195,14 @@ namespace InfoPcDisk
                     TextOptions.SetTextFormattingMode(host, TextFormattingMode.Display);
                     host.Children.Add(root);
                     root = host;
-                    root.Measure(new Size(w, h));
-                    root.Arrange(new Rect(0, 0, w, h));
-                    root.UpdateLayout();
+                    for (int pass = 0; pass < 3; pass++)
+                    {
+                        root.Measure(new Size(w, h));
+                        root.Arrange(new Rect(0, 0, w, h));
+                        root.UpdateLayout();
+                        // lasa listele (DataGrid) sa-si genereze randurile inainte de randare
+                        win.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Background, new Action(delegate { }));
+                    }
                     RenderTargetBitmap rtb = new RenderTargetBitmap(w, h, 96, 96, PixelFormats.Pbgra32);
                     DrawingVisual bg = new DrawingVisual();
                     using (DrawingContext dc = bg.RenderOpen()) dc.DrawRectangle(win.Background, null, new Rect(0, 0, w, h));
