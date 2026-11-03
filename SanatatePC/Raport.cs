@@ -117,7 +117,7 @@ namespace InfoPcDisk
             FlowDocument d = new FlowDocument();
             d.PageWidth = PageW; d.PageHeight = PageH;
             d.PagePadding = new Thickness(48, 40, 48, 56);
-            d.ColumnWidth = PageW;
+            d.ColumnWidth = PageW - 96; d.IsColumnWidthFlexible = true;
             d.FontFamily = new FontFamily("Segoe UI");
             d.FontSize = 11.5;
             d.Foreground = B("#0F172A");
@@ -187,8 +187,8 @@ namespace InfoPcDisk
             Section sys = sections.Find(delegate(Section s) { return s.Key == "sistem"; });
             string pc = sys != null && sys.Cards.Count > 0 ? sys.Cards[0].Title : Environment.MachineName;
             Table meta = new Table();
-            meta.Columns.Add(new TableColumn { Width = new GridLength(130) });
             meta.Columns.Add(new TableColumn { Width = new GridLength(1, GridUnitType.Star) });
+            meta.Columns.Add(new TableColumn { Width = new GridLength(4, GridUnitType.Star) });
             TableRowGroup mg = new TableRowGroup();
             Action<string, string> metaRow = delegate(string k, string v)
             {
@@ -223,9 +223,9 @@ namespace InfoPcDisk
                 // tabel cu toate componentele
                 Table t = new Table();
                 t.CellSpacing = 0;
-                t.Columns.Add(new TableColumn { Width = new GridLength(150) });
-                t.Columns.Add(new TableColumn { Width = new GridLength(1, GridUnitType.Star) });
-                t.Columns.Add(new TableColumn { Width = new GridLength(80) });
+                t.Columns.Add(new TableColumn { Width = new GridLength(2, GridUnitType.Star) });
+                t.Columns.Add(new TableColumn { Width = new GridLength(5, GridUnitType.Star) });
+                t.Columns.Add(new TableColumn { Width = new GridLength(1.2, GridUnitType.Star) });
                 TableRowGroup g = new TableRowGroup();
                 for (int i = 1; i < sum.Cards.Count; i++)
                 {
@@ -278,8 +278,8 @@ namespace InfoPcDisk
             Table t = new Table();
             t.CellSpacing = 0;
             t.Margin = new Thickness(0, 6, 0, 4);
-            t.Columns.Add(new TableColumn { Width = new GridLength(220) });
-            t.Columns.Add(new TableColumn { Width = new GridLength(1, GridUnitType.Star) });
+            t.Columns.Add(new TableColumn { Width = new GridLength(2, GridUnitType.Star) });
+            t.Columns.Add(new TableColumn { Width = new GridLength(3, GridUnitType.Star) });
             TableRowGroup g = new TableRowGroup();
             TableRow hr = new TableRow();
             Paragraph tp = P(title, 12, "#0F172A", true);
