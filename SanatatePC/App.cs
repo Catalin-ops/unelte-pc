@@ -152,8 +152,11 @@ namespace InfoPcDisk
             saveBtn.Click += delegate { SaveReport(); };
             settingsBtn.Click += delegate { ShowSettings(); };
             actionBtn.Click += delegate { RunAction(); };
+            bool started = false;
             win.ContentRendered += delegate
             {
+                if (started) return;
+                started = true;
                 Load();
                 if (lic != null && lic.Valid && lic.Expired)
                     MessageBox.Show(win, "Licența Pro pentru " + lic.Name + " a expirat pe " + lic.ExpiresText + ".\n\nAplicația merge acum în versiunea Free. Pentru reînnoire, apasă „Activează Pro” → „Cere ofertă”.",
