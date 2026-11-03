@@ -32,11 +32,14 @@ namespace InfoPcDisk
         public List<KV> Props { get; set; }
         public List<string> NoteList = new List<string>();
         public string Notes { get { return NoteList.Count == 0 ? "" : "• " + string.Join("\n• ", NoteList.ToArray()); } }
-        public string NotesVisibility { get { return NoteList.Count == 0 ? "Collapsed" : "Visible"; } }
+        public string NotesVisibility { get { return NoteList.Count == 0 || Locked ? "Collapsed" : "Visible"; } }
+        public bool Locked { get; set; }
+        public string LockVisibility { get { return Locked ? "Visible" : "Collapsed"; } }
+        public string PropsVisibility { get { return Locked || Props.Count == 0 ? "Collapsed" : "Visible"; } }
+        public string Icon { get; set; }
         public string Target { get; set; }
-        public string Hand { get { return string.IsNullOrEmpty(Target) ? "Arrow" : "Hand"; } }
+        public string Hand { get { return string.IsNullOrEmpty(Target) && !Locked ? "Arrow" : "Hand"; } }
         public int Level = -1;
-        string customStatus;
 
         public Card(string title, string subtitle)
         {
@@ -75,7 +78,6 @@ namespace InfoPcDisk
         public void SetLevel(int level, string status)
         {
             Level = level;
-            customStatus = status;
             Status = status ?? Lvl.Text(level);
             StatusColor = Lvl.Fg(level);
             StatusBg = Lvl.Bg(level);

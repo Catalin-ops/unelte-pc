@@ -4,7 +4,7 @@ $ErrorActionPreference = 'Stop'
 Set-Location (Split-Path $PSScriptRoot)
 Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, System.Xaml
 
-foreach ($exe in 'RecuperareFisiere', 'SanatatePC') {
+foreach ($exe in 'RecuperareFisiere', 'SanatatePC', 'GeneratorLicente') {
     $asm = [Reflection.Assembly]::LoadFrom((Resolve-Path "dist\$exe.exe"))
     $s = $asm.GetManifestResourceStream('MainWindow.xaml')
     if (-not $s) { throw "$exe : lipseste resursa MainWindow.xaml" }
@@ -34,6 +34,32 @@ foreach ($sec in $secs) {
         foreach ($n in $card.NoteList) { Write-Host ("        ! {0}" -f $n) }
     }
 }
+
+# licenta: cheie valida, expirata, modificata
+$L = $asm.GetType('InfoPcDisk.Licensing')
+$keys = @{}
+foreach ($line in Get-Content 'tests\licente_test.txt') { $k, $v = $line -split '=', 2; $keys[$k] = $v }
+$v = $L.GetMethod('Parse').Invoke($null, @($keys['valid']))
+$x = $L.GetMethod('Parse').Invoke($null, @($keys['expired']))
+$t = $L.GetMethod('Parse').Invoke($null, @($keys['tampered']))
+Write-Host "Licenta valida: IsPro=$($v.IsPro) Nume=$($v.Name) Expira=$($v.ExpiresText)"
+Write-Host "Licenta expirata: Valid=$($x.Valid) Expired=$($x.Expired) IsPro=$($x.IsPro)"
+Write-Host "Licenta modificata: Valid=$($t.Valid) Eroare=$($t.Error)"
+if (-not $v.IsPro -or $x.IsPro -or -not $x.Valid -or $t.Valid) { throw 'Testul de licenta a esuat' }
+
+# raport PDF din sectiunile citite mai sus
+New-Item -ItemType Directory -Force shots | Out-Null
+$R = $asm.GetType('InfoPcDisk.Report')
+$secT = $asm.GetType('InfoPcDisk.Section')
+$list = [Activator]::CreateInstance([Collections.Generic.List``1].MakeGenericType($secT))
+foreach ($sec in $secs) { $list.Add($sec) }
+$dl = [Activator]::CreateInstance([Collections.Generic.List``1].MakeGenericType($asm.GetType('InfoPcDisk.DiskReport')))
+$set = [Activator]::CreateInstance($asm.GetType('InfoPcDisk.Settings'))
+$set.Company = 'Info PC Electric S.R.L.'; $set.Phone = '0700 000 000'; $set.Email = 'contact@infopc.ro'; $set.Website = 'www.infopc.ro'; $set.Address = 'Rediu, jud. Neamt'; $set.Technician = 'Test CI'
+$doc = $R.GetMethod('Build').Invoke($null, @($list, $dl, $v, $set, 'Client Test SRL', 'Recomand curatarea de praf si inlocuirea pastei termoconductoare.'))
+$pages = $R.GetMethod('SavePdf').Invoke($null, @($doc, (Join-Path (Get-Location) 'shots\raport_test.pdf'), 'Info PC Electric - Sanatate PC Pro'))
+Write-Host "PDF: $pages pagini, $((Get-Item shots\raport_test.pdf).Length) octeti"
+if ($pages -lt 1) { throw 'PDF gol' }
 
 # motorul de recuperare: test pe o imagine de disc sintetica (doar cautare profunda)
 $rec = [Reflection.Assembly]::LoadFrom((Resolve-Path 'dist\RecuperareFisiere.exe'))

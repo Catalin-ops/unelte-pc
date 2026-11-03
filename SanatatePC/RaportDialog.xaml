@@ -1,0 +1,61 @@
+<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Raport PDF" Width="520" SizeToContent="Height" MaxHeight="700" ResizeMode="NoResize" ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner" Background="#0E131F" FontFamily="Segoe UI" Foreground="#E6EAF2"
+        TextOptions.TextFormattingMode="Display" UseLayoutRounding="True">
+  <Window.Resources>
+    <Style TargetType="TextBox">
+      <Setter Property="Background" Value="#0B1120"/>
+      <Setter Property="Foreground" Value="#E6EAF2"/>
+      <Setter Property="BorderBrush" Value="#2C3A57"/>
+      <Setter Property="CaretBrush" Value="#E6EAF2"/>
+      <Setter Property="Padding" Value="8,7"/>
+      <Setter Property="FontSize" Value="13.5"/>
+    </Style>
+    <Style x:Key="Lbl" TargetType="TextBlock">
+      <Setter Property="FontSize" Value="12"/>
+      <Setter Property="Foreground" Value="#8A96B0"/>
+      <Setter Property="Margin" Value="0,12,0,4"/>
+    </Style>
+    <Style TargetType="CheckBox">
+      <Setter Property="Foreground" Value="#C7CFDF"/>
+      <Setter Property="FontSize" Value="12.5"/>
+    </Style>
+    <Style TargetType="Button">
+      <Setter Property="Foreground" Value="White"/>
+      <Setter Property="FontSize" Value="13.5"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="Height" Value="40"/>
+      <Setter Property="Background" Value="#1B2436"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Border x:Name="Bd" CornerRadius="10" Padding="16,0" Background="{TemplateBinding Background}" BorderBrush="#2C3A57" BorderThickness="1">
+              <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Bd" Property="BorderBrush" Value="#3B82F6"/></Trigger>
+              <Trigger Property="IsEnabled" Value="False"><Setter TargetName="Bd" Property="Opacity" Value="0.4"/></Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+  </Window.Resources>
+  <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <StackPanel Margin="26,22,26,22">
+      <TextBlock Text="Raport PDF pentru client" FontSize="20" FontWeight="Bold"/>
+      <TextBlock Text="Raportul conține verdictul, toate componentele cu detalii și starea discurilor, cu antetul firmei tale." FontSize="12" Foreground="#8A96B0" TextWrapping="Wrap" Margin="0,4,0,0"/>
+      <TextBlock Text="Numele clientului" Style="{StaticResource Lbl}"/>
+      <TextBox x:Name="ClientBox"/>
+      <TextBlock Text="Observații / recomandări (opțional)" Style="{StaticResource Lbl}"/>
+      <TextBox x:Name="NotesBox" Height="96" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"/>
+      <TextBlock x:Name="NoCompany" Text="Sfat: completează datele firmei și logo-ul din Setări (rotița din dreapta sus) ca să apară în antet." FontSize="11.5" Foreground="#FBBF24" TextWrapping="Wrap" Margin="0,10,0,0" Visibility="Collapsed"/>
+      <StackPanel Orientation="Horizontal" Margin="0,18,0,0">
+        <Button x:Name="OkBtn" Content="Creează PDF" Background="#2563EB" Margin="0,0,10,0"/>
+        <Button x:Name="CancelBtn" Content="Anulează"/>
+      </StackPanel>
+    </StackPanel>
+  </ScrollViewer>
+</Window>

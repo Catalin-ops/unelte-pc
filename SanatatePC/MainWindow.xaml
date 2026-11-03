@@ -1,6 +1,6 @@
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Sănătate PC — Info PC Electric" Width="1260" Height="820" MinWidth="1020" MinHeight="660"
+        Title="Sănătate PC — Info PC Electric" Width="1320" Height="820" MinWidth="1020" MinHeight="660"
         WindowStartupLocation="CenterScreen" Background="#0E131F" FontFamily="Segoe UI" Foreground="#E6EAF2"
         TextOptions.TextFormattingMode="Display" UseLayoutRounding="True">
   <Window.Resources>
@@ -184,17 +184,32 @@
         <TextBlock Text="Toate componentele calculatorului, modelul și starea lor — Info PC Electric" FontSize="12.5" Foreground="#8A96B0"/>
       </StackPanel>
       <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-        <Button x:Name="RefreshBtn" Style="{StaticResource Ghost}">
+        <Border x:Name="LicBadge" CornerRadius="10" Padding="12,7" Background="#1E293B" VerticalAlignment="Center" Cursor="Hand">
+          <StackPanel>
+            <TextBlock x:Name="LicTitle" Text="Versiunea Free" FontSize="12.5" FontWeight="Bold" Foreground="#94A3B8"/>
+            <TextBlock x:Name="LicSub" Text="Activează Pro pentru toate detaliile" FontSize="11" Foreground="#8A96B0"/>
+          </StackPanel>
+        </Border>
+        <Button x:Name="ProBtn" Style="{StaticResource Primary}" Margin="10,0,0,0">
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Text="&#xE735;" FontFamily="Segoe MDL2 Assets" Margin="0,2,8,0"/>
+            <TextBlock Text="Activează Pro"/>
+          </StackPanel>
+        </Button>
+        <Button x:Name="RefreshBtn" Style="{StaticResource Ghost}" ToolTip="Citește din nou toate componentele">
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="&#xE72C;" FontFamily="Segoe MDL2 Assets" Margin="0,2,8,0"/>
             <TextBlock Text="Reîmprospătează"/>
           </StackPanel>
         </Button>
-        <Button x:Name="SaveBtn" Style="{StaticResource Ghost}">
+        <Button x:Name="SaveBtn" Style="{StaticResource Ghost}" ToolTip="Raport PDF pentru client (Pro)">
           <StackPanel Orientation="Horizontal">
-            <TextBlock Text="&#xE74E;" FontFamily="Segoe MDL2 Assets" Margin="0,2,8,0"/>
-            <TextBlock Text="Salvează raport"/>
+            <TextBlock Text="&#xEA90;" FontFamily="Segoe MDL2 Assets" Margin="0,2,8,0"/>
+            <TextBlock Text="Raport PDF"/>
           </StackPanel>
+        </Button>
+        <Button x:Name="SettingsBtn" Style="{StaticResource Ghost}" ToolTip="Datele firmei și logo-ul pentru raport" Width="42" Padding="0">
+          <TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets" FontSize="15"/>
         </Button>
       </StackPanel>
     </Grid>
@@ -223,6 +238,105 @@
           <TextBlock Text="&#xE9F5;" FontFamily="Segoe MDL2 Assets" FontSize="36" Foreground="#3B82F6" HorizontalAlignment="Center"/>
           <TextBlock x:Name="LoadingText" Text="Citesc componentele…" FontSize="16" Foreground="#8A96B0" Margin="0,14,0,0" HorizontalAlignment="Center"/>
         </StackPanel>
+      </Grid>
+
+      <ScrollViewer x:Name="SummaryPage" Grid.Column="2" VerticalScrollBarVisibility="Auto" Visibility="Collapsed">
+        <StackPanel>
+          <Border CornerRadius="20" Padding="28,24" Margin="0,0,0,16" BorderBrush="#24304A" BorderThickness="1">
+            <Border.Background>
+              <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#172554" Offset="0"/><GradientStop Color="#111827" Offset="0.7"/>
+              </LinearGradientBrush>
+            </Border.Background>
+            <Grid>
+              <Grid.ColumnDefinitions><ColumnDefinition Width="190"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+              <Grid Width="170" Height="170" HorizontalAlignment="Left">
+                <Ellipse Width="156" Height="156" Stroke="#1E293B" StrokeThickness="14"/>
+                <Path x:Name="SumRing" StrokeThickness="14" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                  <TextBlock x:Name="SumScore" Text="—" FontSize="48" FontWeight="Bold" HorizontalAlignment="Center"/>
+                  <TextBlock Text="scor general" FontSize="11.5" Foreground="#8A96B0" HorizontalAlignment="Center"/>
+                </StackPanel>
+              </Grid>
+              <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                <Border x:Name="SumPill" CornerRadius="9" Padding="12,5" HorizontalAlignment="Left">
+                  <TextBlock x:Name="SumPillText" FontSize="13" FontWeight="Bold"/>
+                </Border>
+                <TextBlock x:Name="SumTitle" FontSize="24" FontWeight="Bold" TextWrapping="Wrap" Margin="0,10,0,0"/>
+                <TextBlock x:Name="SumSub" FontSize="13" Foreground="#8A96B0" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                <TextBlock x:Name="SumIssues" FontSize="13.5" TextWrapping="Wrap" LineHeight="21" Margin="0,12,0,0" Foreground="#C7CFDF"/>
+              </StackPanel>
+            </Grid>
+          </Border>
+          <Border x:Name="FreeBanner" CornerRadius="14" Padding="18,14" Margin="0,0,0,16" Background="#0F1E3D" BorderBrush="#2563EB" BorderThickness="1" Cursor="Hand" Visibility="Collapsed">
+            <Grid>
+              <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+              <TextBlock Text="&#xE735;" FontFamily="Segoe MDL2 Assets" FontSize="22" Foreground="#60A5FA" VerticalAlignment="Center" Margin="0,0,14,0"/>
+              <StackPanel Grid.Column="1">
+                <TextBlock x:Name="FreeTitle" Text="Folosești versiunea Free" FontSize="14.5" FontWeight="Bold"/>
+                <TextBlock x:Name="FreeText" Text="Vezi verdictul și modelele componentelor. Cu Pro primești toate detaliile, SMART, temperaturi, stabilitate, monitorizare live și raport PDF cu logo-ul firmei." FontSize="12.5" Foreground="#93C5FD" TextWrapping="Wrap" Margin="0,3,0,0"/>
+              </StackPanel>
+              <TextBlock Grid.Column="2" Text="Activează  &#x203A;" FontSize="13.5" FontWeight="SemiBold" Foreground="#60A5FA" VerticalAlignment="Center" Margin="14,0,0,0"/>
+            </Grid>
+          </Border>
+          <ListBox x:Name="TileList" Background="Transparent" BorderThickness="0" Foreground="#E6EAF2"
+                   ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Disabled">
+            <ListBox.ItemsPanel>
+              <ItemsPanelTemplate><UniformGrid Columns="3"/></ItemsPanelTemplate>
+            </ListBox.ItemsPanel>
+            <ListBox.ItemContainerStyle>
+              <Style TargetType="ListBoxItem">
+                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Template">
+                  <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                      <Border x:Name="Bd" Background="#151C2C" BorderBrush="#24304A" BorderThickness="1" CornerRadius="16" Padding="16,14" Margin="0,0,12,12">
+                        <ContentPresenter/>
+                      </Border>
+                      <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Bd" Property="BorderBrush" Value="#3B82F6"/><Setter TargetName="Bd" Property="Background" Value="#18213A"/></Trigger>
+                      </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                  </Setter.Value>
+                </Setter>
+              </Style>
+            </ListBox.ItemContainerStyle>
+            <ListBox.ItemTemplate>
+              <DataTemplate>
+                <StackPanel>
+                  <Grid>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                    <Border Width="40" Height="40" CornerRadius="12" Background="{Binding StatusBg}">
+                      <TextBlock Text="{Binding Icon}" FontFamily="Segoe MDL2 Assets" FontSize="17" Foreground="{Binding StatusColor}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="14" FontWeight="Bold" VerticalAlignment="Center" Margin="12,0,8,0" TextTrimming="CharacterEllipsis"/>
+                    <Border Grid.Column="2" CornerRadius="7" Padding="8,3" Background="{Binding StatusBg}" VerticalAlignment="Center">
+                      <TextBlock Text="{Binding Status}" Foreground="{Binding StatusColor}" FontSize="11.5" FontWeight="Bold"/>
+                    </Border>
+                  </Grid>
+                  <TextBlock Text="{Binding Summary}" FontSize="12.5" Foreground="#AEB8CC" TextWrapping="Wrap" Margin="0,10,0,0" MaxHeight="36" TextTrimming="CharacterEllipsis"/>
+                </StackPanel>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </StackPanel>
+      </ScrollViewer>
+
+      <Grid x:Name="LivePage" Grid.Column="2" Visibility="Collapsed">
+        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+        <StackPanel Margin="2,0,0,14">
+          <TextBlock Text="Monitorizare live" FontSize="22" FontWeight="Bold"/>
+          <TextBlock Text="Încărcarea și temperaturile actualizate în fiecare secundă. Pornește un program greu (joc, randare) ca să vezi cum se comportă răcirea." FontSize="12.5" Foreground="#8A96B0" TextWrapping="Wrap" Margin="0,3,0,0"/>
+        </StackPanel>
+        <UniformGrid x:Name="LiveGrid" Grid.Row="1" Columns="3" Rows="2" Margin="0,0,-12,-12"/>
+        <Border x:Name="LiveLock" Grid.Row="1" Background="#E60E131F" Visibility="Collapsed" Cursor="Hand">
+          <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="440">
+            <TextBlock Text="&#xE72E;" FontFamily="Segoe MDL2 Assets" FontSize="34" Foreground="#60A5FA" HorizontalAlignment="Center"/>
+            <TextBlock Text="Monitorizarea live e în versiunea Pro" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,12,0,0"/>
+            <TextBlock Text="Grafice în timp real pentru procesor, memorie, placa video, discuri și temperaturi. Apasă aici pentru a activa Pro." FontSize="13" Foreground="#93C5FD" TextWrapping="Wrap" TextAlignment="Center" Margin="0,6,0,0"/>
+          </StackPanel>
+        </Border>
       </Grid>
 
       <Grid x:Name="GenericPage" Grid.Column="2" Visibility="Collapsed">
@@ -256,7 +370,13 @@
                         </Border>
                       </StackPanel>
                     </Grid>
-                    <ItemsControl ItemsSource="{Binding Props}" Margin="0,10,0,0">
+                    <Border Visibility="{Binding LockVisibility}" Background="#0F1524" BorderBrush="#24304A" BorderThickness="1" CornerRadius="10" Padding="12,10" Margin="0,14,0,0">
+                      <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE72E;" FontFamily="Segoe MDL2 Assets" Foreground="#60A5FA" Margin="0,2,10,0"/>
+                        <TextBlock Text="Detaliile complete sunt în versiunea Pro — apasă pentru activare" FontSize="12.5" Foreground="#93C5FD"/>
+                      </StackPanel>
+                    </Border>
+                    <ItemsControl ItemsSource="{Binding Props}" Margin="0,10,0,0" Visibility="{Binding PropsVisibility}">
                       <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
                       </ItemsControl.ItemsPanel>
@@ -338,7 +458,7 @@
             </Grid>
           </Border>
 
-          <UniformGrid Columns="3" Margin="0,0,-12,0">
+          <UniformGrid x:Name="DiskTiles" Columns="3" Margin="0,0,-12,0">
             <Border Style="{StaticResource Tile}">
               <StackPanel>
                 <TextBlock Text="TEMPERATURĂ" Style="{StaticResource TileLabel}"/>
@@ -383,14 +503,20 @@
             </Border>
           </UniformGrid>
 
-          <Border Style="{StaticResource Card}" Margin="0,0,0,12">
+          <Border x:Name="DiskLock" Background="#151C2C" BorderBrush="#3B82F6" BorderThickness="1" CornerRadius="16" Padding="22" Margin="0,0,0,12" Visibility="Collapsed" Cursor="Hand">
+            <StackPanel>
+              <TextBlock Text="&#xE72E;  Detaliile discului sunt în versiunea Pro" FontFamily="Segoe UI, Segoe MDL2 Assets" FontSize="15" FontWeight="Bold"/>
+              <TextBlock Text="Temperatura, viața rămasă, sectoarele defecte, orele de funcționare și tabelul SMART complet. Apasă aici pentru a activa Pro." FontSize="12.5" Foreground="#8A96B0" TextWrapping="Wrap" Margin="0,6,0,0"/>
+            </StackPanel>
+          </Border>
+          <Border x:Name="DiskReasons" Style="{StaticResource Card}" Margin="0,0,0,12">
             <StackPanel>
               <TextBlock Text="Ce am găsit" Style="{StaticResource H2}"/>
               <TextBlock Text="{Binding ReasonsText}" FontSize="13.5" TextWrapping="Wrap" LineHeight="21"/>
             </StackPanel>
           </Border>
 
-          <Border Style="{StaticResource Card}" Margin="0,0,0,12">
+          <Border x:Name="DiskInfo" Style="{StaticResource Card}" Margin="0,0,0,12">
             <StackPanel>
               <TextBlock Text="Detalii" Style="{StaticResource H2}"/>
               <Grid>
@@ -410,7 +536,7 @@
             </StackPanel>
           </Border>
 
-          <Border Style="{StaticResource Card}" Padding="0">
+          <Border x:Name="DiskSmart" Style="{StaticResource Card}" Padding="0">
             <StackPanel>
               <TextBlock Text="Atribute SMART (pentru tehnicieni)" Style="{StaticResource H2}" Margin="20,18,20,10"/>
               <DataGrid x:Name="AttrGrid" ItemsSource="{Binding Attributes}" AutoGenerateColumns="False" IsReadOnly="True"
