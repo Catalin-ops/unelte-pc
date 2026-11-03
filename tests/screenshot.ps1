@@ -21,7 +21,7 @@ try {
 } catch { Write-Host "rezolutia nu s-a putut schimba: $($_.Exception.Message)" }
 Shot 'SanatatePC' 'sanatate_free.png' 25
 Shot 'SanatatePC' 'sanatate_free_ram.png' 20 '--pagina=ram'
-$valid = ((Get-Content 'tests\licente_test.txt') | Where-Object { $_ -like 'valid=*' }).Substring(6)
+$valid = ((Get-Content 'tests\licente_test.txt') | Where-Object { $_ -like 'screenshot=*' }).Substring(11)
 Set-Content -Path 'dist\licenta.spc' -Value $valid -Encoding ASCII
 Shot 'SanatatePC' 'sanatate_pro.png' 25
 Shot 'SanatatePC' 'sanatate_pro_ram.png' 20 '--pagina=ram'

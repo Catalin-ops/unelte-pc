@@ -11,6 +11,7 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Media;
@@ -185,6 +186,15 @@ namespace InfoPcDisk
                 try
                 {
                     FrameworkElement root = (FrameworkElement)win.Content;
+                    win.Content = null;   // randare in afara ferestrei, la marimea ceruta (poate depasi ecranul)
+                    Grid host = new Grid();
+                    host.Background = win.Background;
+                    host.Resources = win.Resources;
+                    TextElement.SetFontFamily(host, win.FontFamily);
+                    TextElement.SetForeground(host, win.Foreground);
+                    TextOptions.SetTextFormattingMode(host, TextFormattingMode.Display);
+                    host.Children.Add(root);
+                    root = host;
                     root.Measure(new Size(w, h));
                     root.Arrange(new Rect(0, 0, w, h));
                     root.UpdateLayout();

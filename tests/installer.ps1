@@ -34,7 +34,7 @@ Write-Host 'Dezinstalare: OK'
 
 # capturi pentru Microsoft Store, 1920x1080, versiunea Pro
 New-Item -ItemType Directory -Force 'shots\store' | Out-Null
-$valid = ((Get-Content 'tests\licente_test.txt') | Where-Object { $_ -like 'valid=*' }).Substring(6)
+$valid = ((Get-Content 'tests\licente_test.txt') | Where-Object { $_ -like 'screenshot=*' }).Substring(11)
 Set-Content -Path 'dist\licenta.spc' -Value $valid -Encoding ASCII
 foreach ($pg in 'sumar', 'live', 'ram', 'gpu', 'discuri', 'stabilitate') {
     $out = Join-Path (Get-Location).Path "shots\store\$pg.png"

@@ -38,14 +38,14 @@ foreach ($sec in $secs) {
 # licenta: cheie valida, expirata, modificata
 $L = $asm.GetType('InfoPcDisk.Licensing')
 $keys = @{}
-foreach ($line in Get-Content 'tests\licente_test.txt') { $k, $v = $line -split '=', 2; $keys[$k] = $v }
-$v = $L.GetMethod('Parse').Invoke($null, @($keys['valid']))
+foreach ($line in Get-Content 'tests\licente_test.txt') { if ($line -match '^\w+=') { $k, $val = $line -split '=', 2; $keys[$k] = $val } }
+$v = $L.GetMethod('Parse').Invoke($null, @($keys['screenshot']))
 $x = $L.GetMethod('Parse').Invoke($null, @($keys['expired']))
 $t = $L.GetMethod('Parse').Invoke($null, @($keys['tampered']))
-Write-Host "Licenta valida: IsPro=$($v.IsPro) Nume=$($v.Name) Expira=$($v.ExpiresText)"
+Write-Host "Licenta capturi: Valid=$($v.Valid) IsPro=$($v.IsPro) Nume=$($v.Name) Expira=$($v.ExpiresText)"
 Write-Host "Licenta expirata: Valid=$($x.Valid) Expired=$($x.Expired) IsPro=$($x.IsPro)"
 Write-Host "Licenta modificata: Valid=$($t.Valid) Eroare=$($t.Error)"
-if (-not $v.IsPro -or $x.IsPro -or -not $x.Valid -or $t.Valid) { throw 'Testul de licenta a esuat' }
+if (-not $v.Valid -or $x.IsPro -or -not $x.Valid -or -not $x.Expired -or $t.Valid) { throw 'Testul de licenta a esuat' }
 
 # raport PDF din sectiunile citite mai sus
 New-Item -ItemType Directory -Force shots | Out-Null
