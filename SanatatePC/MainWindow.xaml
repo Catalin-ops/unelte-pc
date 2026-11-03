@@ -13,6 +13,7 @@
       <Setter Property="Padding" Value="20"/>
     </Style>
     <Style x:Key="Tile" TargetType="Border">
+      <Setter Property="Width" Value="218"/>
       <Setter Property="Background" Value="#111827"/>
       <Setter Property="BorderBrush" Value="#24304A"/>
       <Setter Property="BorderThickness" Value="1"/>
@@ -208,7 +209,7 @@
             <TextBlock Text="Raport PDF"/>
           </StackPanel>
         </Button>
-        <Button x:Name="SettingsBtn" Style="{StaticResource Ghost}" ToolTip="Datele firmei și logo-ul pentru raport" Width="42" Padding="0">
+        <Button x:Name="SettingsBtn" Style="{StaticResource Ghost}" ToolTip="Datele firmei și logo-ul pentru raport">
           <TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets" FontSize="15"/>
         </Button>
       </StackPanel>
@@ -400,7 +401,7 @@
       </Grid>
 
       <Grid x:Name="DiskPage" Grid.Column="2" Visibility="Collapsed">
-        <Grid.ColumnDefinitions><ColumnDefinition Width="300"/><ColumnDefinition Width="16"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+        <Grid.ColumnDefinitions><ColumnDefinition Width="270"/><ColumnDefinition Width="16"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
       <!-- lista discuri -->
       <Border Style="{StaticResource Card}">
         <DockPanel>
@@ -458,7 +459,7 @@
             </Grid>
           </Border>
 
-          <UniformGrid x:Name="DiskTiles" Columns="3" Margin="0,0,-12,0">
+          <WrapPanel x:Name="DiskTiles" Margin="0,0,-12,0">
             <Border Style="{StaticResource Tile}">
               <StackPanel>
                 <TextBlock Text="TEMPERATURĂ" Style="{StaticResource TileLabel}"/>
@@ -501,7 +502,7 @@
                 <TextBlock Text="total pe toată viața discului" Style="{StaticResource TileSub}"/>
               </StackPanel>
             </Border>
-          </UniformGrid>
+          </WrapPanel>
 
           <Border x:Name="DiskLock" Background="#151C2C" BorderBrush="#3B82F6" BorderThickness="1" CornerRadius="16" Padding="22" Margin="0,0,0,12" Visibility="Collapsed" Cursor="Hand">
             <StackPanel>
