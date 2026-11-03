@@ -57,7 +57,8 @@ $dl = [Activator]::CreateInstance([Collections.Generic.List``1].MakeGenericType(
 $set = [Activator]::CreateInstance($asm.GetType('InfoPcDisk.Settings'))
 $set.Company = 'Info PC Electric S.R.L.'; $set.Phone = '0700 000 000'; $set.Email = 'contact@infopc.ro'; $set.Website = 'www.infopc.ro'; $set.Address = 'Rediu, jud. Neamt'; $set.Technician = 'Test CI'
 $doc = $R.GetMethod('Build').Invoke($null, @($list, $dl, $v, $set, 'Client Test SRL', 'Recomand curatarea de praf si inlocuirea pastei termoconductoare.'))
-$pages = $R.GetMethod('SavePdf').Invoke($null, @($doc, (Join-Path (Get-Location) 'shots\raport_test.pdf'), 'Info PC Electric - Sanatate PC Pro'))
+$pdfPath = [string](Join-Path (Get-Location).Path 'shots\raport_test.pdf')
+$pages = $R.GetMethod('SavePdf').Invoke($null, [object[]]@($doc, $pdfPath, [string]'Info PC Electric - Sanatate PC Pro'))
 Write-Host "PDF: $pages pagini, $((Get-Item shots\raport_test.pdf).Length) octeti"
 if ($pages -lt 1) { throw 'PDF gol' }
 
