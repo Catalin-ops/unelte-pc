@@ -13,8 +13,9 @@ New-Item -ItemType Directory -Force dist | Out-Null
 
 function Build($name, $folder, $icon, $manifest, $extra) {
     Write-Host "== $name"
-    $src = @(Get-ChildItem "$folder\*.cs" | ForEach-Object { $_.FullName }) + $extra
-    $res = Get-ChildItem "$folder\*.xaml" | ForEach-Object { "/resource:$($_.FullName),$($_.Name)" }
+    $src = @(Get-ChildItem "$folder\*.cs" | ForEach-Object { $_.FullName })
+    if ($extra) { $src += @($extra) }
+    $res = @(Get-ChildItem "$folder\*.xaml" | ForEach-Object { "/resource:$($_.FullName),$($_.Name)" })
     & $csc /nologo /target:winexe /optimize+ /codepage:65001 /platform:anycpu `
         "/out:dist\$name.exe" "/win32manifest:assets\$manifest" "/win32icon:assets\$icon" `
         @res @refs @src
