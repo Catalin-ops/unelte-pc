@@ -547,11 +547,11 @@
                         VerticalScrollBarVisibility="Disabled">
                 <DataGrid.Columns>
                   <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50"/>
-                  <DataGridTextColumn Header="Atribut" Binding="{Binding Name}" Width="2*"/>
+                  <DataGridTextColumn Header="Atribut" Binding="{Binding Name}" Width="300"/>
                   <DataGridTextColumn Header="Curent" Binding="{Binding Current}" Width="70"/>
                   <DataGridTextColumn Header="Cel mai rău" Binding="{Binding Worst}" Width="90"/>
                   <DataGridTextColumn Header="Prag" Binding="{Binding Threshold}" Width="60"/>
-                  <DataGridTextColumn Header="Valoare" Binding="{Binding RawText}" Width="1.4*"/>
+                  <DataGridTextColumn Header="Valoare" Binding="{Binding RawText}" Width="260"/>
                   <DataGridTemplateColumn Header="Stare" Width="90">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate><TextBlock Text="{Binding Status}" Foreground="{Binding StatusColor}" FontWeight="SemiBold"/></DataTemplate>

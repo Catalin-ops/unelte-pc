@@ -212,7 +212,8 @@ namespace InfoPcDisk
 
                 AddNvme(r, "Avertizare critică", crit == 0 ? "0 (niciuna)" : "0x" + crit.ToString("X2"), crit == 0 ? 0 : 2);
                 AddNvme(r, "Temperatură", r.Temp >= 0 ? r.Temp + " °C" : "—", 0);
-                AddNvme(r, "Rezervă disponibilă", spare + "% (prag " + spareThr + "%)", spare < spareThr ? 2 : spare < 50 ? 1 : 0);
+                bool spareKnown = !(spare == 0 && spareThr == 0); // unele discuri virtuale raporteaza 0/0
+                AddNvme(r, "Rezervă disponibilă", spareKnown ? spare + "% (prag " + spareThr + "%)" : "—", !spareKnown ? 0 : spare < spareThr ? 2 : spare < 50 ? 1 : 0);
                 AddNvme(r, "Procent de viață folosit", used + "%", used >= 100 ? 2 : used >= 80 ? 1 : 0);
                 AddNvme(r, "Date citite", FormatBytes((long)Math.Min((double)unitsRead * 512000.0, long.MaxValue), false), 0);
                 AddNvme(r, "Date scrise", written, 0);
