@@ -18,6 +18,9 @@ jobs:
       - name: Test pornire (verifica XAML si initializare)
         shell: powershell
         run: ./tests/smoke.ps1
+      - name: Installer + test instalare + capturi Store
+        shell: powershell
+        run: ./tests/installer.ps1
       - name: Capturi de ecran
         shell: powershell
         continue-on-error: true
@@ -41,7 +44,8 @@ jobs:
           $sha = "${{ github.sha }}".Substring(0,7)
           New-Item -ItemType Directory -Force out | Out-Null
           Copy-Item dist\*.exe out\
-          if (Test-Path shots) { Copy-Item shots\* out\ }
+          if (Test-Path shots\store) { New-Item -ItemType Directory -Force out\store | Out-Null; Copy-Item shots\store\* out\store\ }
+          if (Test-Path shots) { Copy-Item shots\*.* out\ }
           Set-Location out
           git init -q -b build
           git config user.name "github-actions"
@@ -51,5 +55,5 @@ jobs:
           git push -f -q "https://x-access-token:$env:GH_TOKEN@github.com/${{ github.repository }}.git" build
           Set-Location ..
           cmd /c "gh release delete ultima-versiune --yes --cleanup-tag 2>nul"
-          gh release create ultima-versiune dist\RecuperareFisiere.exe dist\SanatatePC.exe --title "Ultima versiune ($sha)" --notes "Recuperare Fisiere si Sanatate PC - descarca fisierele .exe de mai jos." --latest
+          gh release create ultima-versiune dist\RecuperareFisiere.exe dist\SanatatePC.exe (Get-ChildItem dist\SanatatePC_Setup_*.exe).FullName --title "Ultima versiune ($sha)" --notes "Recuperare Fisiere si Sanatate PC - descarca fisierele .exe de mai jos." --latest
           if ($LASTEXITCODE -ne 0) { exit 1 }

@@ -22,6 +22,7 @@ using System.Windows.Media.Imaging;
 [assembly: AssemblyProduct("Sănătate PC")]
 [assembly: AssemblyCopyright("© 2026 Info PC Electric")]
 [assembly: AssemblyVersion("1.1.0.0")]
+[assembly: AssemblyInformationalVersion("1.1.0")]
 [assembly: AssemblyFileVersion("1.1.0.0")]
 
 namespace InfoPcDisk
@@ -88,7 +89,7 @@ namespace InfoPcDisk
         void Build()
         {
             win = LoadWindow("MainWindow.xaml");
-            FitToScreen(win);
+            if (Arg("captura") == null) FitToScreen(win);
             nav = F<ListBox>("NavList");
             cardList = F<ListBox>("CardList");
             diskList = F<ListBox>("DiskList");
@@ -161,6 +162,48 @@ namespace InfoPcDisk
         }
 
         // pornire directa pe o pagina: SanatatePC.exe --pagina=live
+        static string Arg(string name)
+        {
+            foreach (string a in Environment.GetCommandLineArgs())
+                if (a.StartsWith("--" + name + "=", StringComparison.OrdinalIgnoreCase)) return a.Substring(name.Length + 3);
+            return null;
+        }
+
+        // captura de ecran a ferestrei la o rezolutie data (pentru Microsoft Store): --captura=fisier.png --marime=1920x1080
+        void CaptureAndExit()
+        {
+            string file = Arg("captura");
+            if (file == null) return;
+            int w = 1920, h = 1080;
+            string m = Arg("marime");
+            if (m != null) { string[] p = m.Split('x'); int.TryParse(p[0], out w); if (p.Length > 1) int.TryParse(p[1], out h); }
+            System.Windows.Threading.DispatcherTimer t = new System.Windows.Threading.DispatcherTimer();
+            t.Interval = TimeSpan.FromSeconds(livePage.Visibility == Visibility.Visible ? 12 : 3);
+            t.Tick += delegate
+            {
+                t.Stop();
+                try
+                {
+                    FrameworkElement root = (FrameworkElement)win.Content;
+                    root.Measure(new Size(w, h));
+                    root.Arrange(new Rect(0, 0, w, h));
+                    root.UpdateLayout();
+                    RenderTargetBitmap rtb = new RenderTargetBitmap(w, h, 96, 96, PixelFormats.Pbgra32);
+                    DrawingVisual bg = new DrawingVisual();
+                    using (DrawingContext dc = bg.RenderOpen()) dc.DrawRectangle(win.Background, null, new Rect(0, 0, w, h));
+                    rtb.Render(bg);
+                    rtb.Render(root);
+                    PngBitmapEncoder enc = new PngBitmapEncoder();
+                    enc.Frames.Add(BitmapFrame.Create(rtb));
+                    using (FileStream fs = File.Create(file)) enc.Save(fs);
+                }
+                catch (Exception) { }
+                live.Stop();
+                win.Close();
+            };
+            t.Start();
+        }
+
         static string StartPage()
         {
             foreach (string a in Environment.GetCommandLineArgs())
@@ -426,6 +469,7 @@ namespace InfoPcDisk
                     if (prevKey != null) foreach (Section s in sections) if (s.Key == prevKey) sel = s;
                     nav.SelectedItem = sel;
                     ShowSection(sel);
+                    CaptureAndExit();
                 }));
             });
             t.IsBackground = true;
