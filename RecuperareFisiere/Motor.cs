@@ -742,7 +742,8 @@ namespace InfoPcRecover
                 pos += bytes;
             }
             string ext = f.Name.Substring(f.Name.LastIndexOf('.') + 1).ToLowerInvariant();
-            bool compressed = ext == "jpg" || ext == "jpeg" || ext == "jpe" || ext == "jfif" || ext.EndsWith("x") || ext == "docm" || ext == "xlsm";
+            // in JPG, Office (zip) si PDF un bloc de 4 KB complet gol practic nu apare: e semn de zona golita/suprascrisa
+            bool compressed = ext == "jpg" || ext == "jpeg" || ext == "jpe" || ext == "jfif" || ext.EndsWith("x") || ext == "docm" || ext == "xlsm" || ext == "pdf";
             if (compressed && zeroBlocks > 0)
                 return zeroBlocks * 2 >= blocks ? "Golit de SSD (TRIM)" : "Parțial golit (TRIM)";
             int tl = tail.Length;
@@ -754,7 +755,7 @@ namespace InfoPcRecover
                 if (t.IndexOf("%%EOF") < 0) return zeroBlocks > 0 ? "Parțial golit (TRIM)" : "Incomplet (lipsește finalul)";
                 if (zeroBlocks * 4 > blocks) return "Parțial golit (TRIM)";
             }
-            else if (compressed && ext != "jpg" && ext != "jpeg" && ext != "jpe" && ext != "jfif")
+            else if (compressed && ext != "pdf" && ext != "jpg" && ext != "jpeg" && ext != "jpe" && ext != "jfif")
             {
                 bool eocd = false;
                 // sfarsitul arhivei ZIP se termina chiar cu zerouri (lungimea comentariului), deci cautam in toata coada

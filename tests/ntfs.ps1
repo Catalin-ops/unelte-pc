@@ -120,7 +120,7 @@ $e5.SourcePath = '\\.\T:'; $e5.DestDir = $out; $e5.WantPdf = $true
 $e5.StartQuick(); $f5 = Run $e5 'pdf'
 $pdf = $f5 | Where-Object { $_.Name -eq 'Raport.pdf' }
 if (-not $pdf -or $pdf.Status -ne 'Bun') { throw "PDF-ul intact ar trebui sa fie Bun, e: $($pdf.Status)" }
-$run = $pdf.Runs[0]; $cl = $pdf.ClusterSize
+$cl = $pdf.ClusterSize
 $partOff = (Get-Partition -DriveLetter T).Offset
 foreach ($x in @($e, $e2, $e3, $e5)) { try { $x.Close() } catch {} }
 [GC]::Collect(); [GC]::WaitForPendingFinalizers()
@@ -128,14 +128,17 @@ foreach ($x in @($e, $e2, $e3, $e5)) { try { $x.Close() } catch {} }
 diskpart /s $dp | Out-Host
 for ($w = 0; $w -lt 20 -and (Get-DiskImage -ImagePath $vhd).Attached; $w++) { Start-Sleep 1 }
 if ((Get-DiskImage -ImagePath $vhd).Attached) { throw 'Discul virtual nu s-a desprins' }
-$half = [long]($run[1] / 2)
+# golim a doua jumatate a fisierului, pe toate bucatile lui (fisierul poate fi fragmentat)
+$totalCl = [long][Math]::Ceiling($pdf.Size / $cl); $from = [long]($totalCl / 2); $idx = 0; $zeroed = 0
 $fsv = New-Object IO.FileStream($vhd, [IO.FileMode]::Open, [IO.FileAccess]::ReadWrite, [IO.FileShare]::None, 4096, [IO.FileOptions]::WriteThrough)
-$fsv.Position = $partOff + ($run[0] + $half) * $cl
-$z = New-Object byte[] (($run[1] - $half) * $cl)
-$fsv.Write($z, 0, $z.Length); $fsv.Flush($true); $fsv.Close()
-Write-Host "Golire: LCN=$($run[0]) clustere=$($run[1]) cluster=$cl partitie@$partOff -> octeti $($z.Length) de la $($partOff + ($run[0] + $half) * $cl); runs=$($pdf.Runs.Count) size=$($pdf.Size)"
-$chk = [IO.File]::OpenRead($vhd); $chk.Position = $partOff + $run[0] * $cl; $hb = New-Object byte[] 16; [void]$chk.Read($hb, 0, 16); $chk.Close()
-Write-Host ("Inceput fisier in VHD: " + [Text.Encoding]::ASCII.GetString($hb))
+$zc = New-Object byte[] $cl
+foreach ($r in $pdf.Runs) {
+    for ($k = 0; $k -lt $r[1]; $k++, $idx++) {
+        if ($idx -ge $from -and $idx -lt $totalCl -and $r[0] -ge 0) { $fsv.Position = $partOff + ($r[0] + $k) * $cl; $fsv.Write($zc, 0, $cl); $zeroed++ }
+    }
+}
+$fsv.Flush($true); $fsv.Close()
+Write-Host "Golire: $zeroed din $totalCl clustere, in $($pdf.Runs.Count) bucati"
 "select vdisk file=`"$vhd`"`nattach vdisk`nselect partition 1`nassign letter=T" | Set-Content $dp -Encoding ASCII
 diskpart /s $dp | Out-Host
 for ($w = 0; $w -lt 20 -and -not (Test-Path 'T:\'); $w++) { Start-Sleep 1 }
