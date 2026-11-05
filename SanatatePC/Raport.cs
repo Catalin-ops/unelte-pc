@@ -329,6 +329,209 @@ namespace InfoPcDisk
             }
         }
 
+
+        // ------------------------------------------------------------ raport pe institutie (proiect)
+        static Block Header(Settings st)
+        {
+            Table head = new Table();
+            head.CellSpacing = 0;
+            head.Columns.Add(new TableColumn { Width = new GridLength(1, GridUnitType.Star) });
+            head.Columns.Add(new TableColumn { Width = new GridLength(1, GridUnitType.Star) });
+            TableRowGroup hg = new TableRowGroup();
+            TableRow hr = new TableRow();
+            Block left = null;
+            try
+            {
+                if (st.LogoPath.Length > 0 && File.Exists(st.LogoPath))
+                {
+                    BitmapImage logo = new BitmapImage();
+                    logo.BeginInit(); logo.CacheOption = BitmapCacheOption.OnLoad; logo.UriSource = new Uri(st.LogoPath); logo.EndInit();
+                    System.Windows.Controls.Image img = new System.Windows.Controls.Image();
+                    img.Source = logo; img.MaxHeight = 64; img.MaxWidth = 220; img.Stretch = Stretch.Uniform; img.HorizontalAlignment = HorizontalAlignment.Left;
+                    left = new BlockUIContainer(img);
+                }
+            }
+            catch (Exception) { left = null; }
+            if (left == null) left = P(st.Company.Length > 0 ? st.Company : "Raport tehnic", 18, "#1E3A8A", true);
+            hr.Cells.Add(new TableCell(left));
+            Paragraph comp = new Paragraph();
+            comp.TextAlignment = TextAlignment.Right; comp.FontSize = 10.5; comp.Foreground = B("#334155"); comp.Margin = new Thickness(0);
+            List<string> lines = new List<string>();
+            if (st.Company.Length > 0) lines.Add(st.Company);
+            if (st.Address.Length > 0) lines.Add(st.Address);
+            if (st.Phone.Length > 0) lines.Add("Tel: " + st.Phone);
+            if (st.Email.Length > 0) lines.Add(st.Email);
+            if (st.Website.Length > 0) lines.Add(st.Website);
+            for (int i = 0; i < lines.Count; i++)
+            {
+                Run r = new Run(lines[i]);
+                if (i == 0) r.FontWeight = FontWeights.Bold;
+                comp.Inlines.Add(r);
+                if (i < lines.Count - 1) comp.Inlines.Add(new LineBreak());
+            }
+            hr.Cells.Add(new TableCell(comp));
+            hg.Rows.Add(hr);
+            head.RowGroups.Add(hg);
+            return head;
+        }
+
+        static FlowDocument NewDoc()
+        {
+            FlowDocument d = new FlowDocument();
+            d.PageWidth = PageW; d.PageHeight = PageH;
+            d.PagePadding = new Thickness(48, 40, 48, 56);
+            d.ColumnWidth = PageW - 96; d.IsColumnWidthFlexible = true;
+            d.FontFamily = new FontFamily("Segoe UI");
+            d.FontSize = 11.5;
+            d.Foreground = B("#0F172A");
+            d.Background = Brushes.White;
+            return d;
+        }
+
+        static Table Grid(double[] stars, string[] headers, List<string[]> rows, List<int> levels)
+        {
+            Table t = new Table();
+            t.CellSpacing = 0;
+            t.Margin = new Thickness(0, 6, 0, 6);
+            foreach (double w in stars) t.Columns.Add(new TableColumn { Width = new GridLength(w, GridUnitType.Star) });
+            TableRowGroup g = new TableRowGroup();
+            TableRow h = new TableRow();
+            foreach (string x in headers) h.Cells.Add(Cell(P(x, 10, "#475569", true), "#F1F5F9", 6));
+            g.Rows.Add(h);
+            for (int i = 0; i < rows.Count; i++)
+            {
+                TableRow r = new TableRow();
+                string bg = i % 2 == 1 ? "#F8FAFC" : null;
+                for (int k = 0; k < rows[i].Length; k++)
+                {
+                    bool last = k == rows[i].Length - 1 && levels != null;
+                    Block b = last ? StatusPill(rows[i][k], levels[i]) : P(rows[i][k], 10.5, k == 0 ? "#0F172A" : "#334155", k == 0);
+                    r.Cells.Add(Cell(b, bg, 6));
+                }
+                g.Rows.Add(r);
+            }
+            t.RowGroups.Add(g);
+            return t;
+        }
+
+        public static FlowDocument BuildProject(Project pr, License lic, Settings st)
+        {
+            FlowDocument d = NewDoc();
+            d.Blocks.Add(Header(st));
+            Paragraph rule = new Paragraph();
+            rule.BorderBrush = B("#2563EB"); rule.BorderThickness = new Thickness(0, 0, 0, 2.5);
+            rule.Margin = new Thickness(0, 10, 0, 14); rule.FontSize = 2;
+            d.Blocks.Add(rule);
+            d.Blocks.Add(P("Raport tehnic — " + pr.Name, 20, "#0F172A", true));
+
+            int good = 0, warn = 0, bad = 0, urgent = 0, recommended = 0;
+            DateTime first = DateTime.MaxValue, last = DateTime.MinValue;
+            foreach (PcRecord p in pr.Pcs)
+            {
+                if (p.Level == 2) bad++; else if (p.Level == 1) warn++; else good++;
+                foreach (Rec r in p.Recs) { if (r.Priority == 1) urgent++; else if (r.Priority == 2) recommended++; }
+                if (p.Date < first) first = p.Date;
+                if (p.Date > last) last = p.Date;
+            }
+            string period = first.Date == last.Date ? first.ToString("dd.MM.yyyy", RO) : first.ToString("dd.MM.yyyy", RO) + " – " + last.ToString("dd.MM.yyyy", RO);
+            d.Blocks.Add(P("Verificare efectuată: " + period + (st.Technician.Length > 0 ? " · Tehnician: " + st.Technician : ""), 11, "#475569", false));
+
+            // ---- sumar
+            Paragraph sum = new Paragraph();
+            int worst = bad > 0 ? 2 : warn > 0 ? 1 : 0;
+            sum.Background = B(worst == 2 ? "#FEF2F2" : worst == 1 ? "#FFFBEB" : "#F0FDF4");
+            sum.BorderBrush = B(StatusColor(worst)); sum.BorderThickness = new Thickness(4, 0, 0, 0);
+            sum.Padding = new Thickness(14, 10, 14, 10); sum.Margin = new Thickness(0, 14, 0, 6);
+            Run t1 = new Run(pr.Pcs.Count + (pr.Pcs.Count == 1 ? " calculator verificat" : " calculatoare verificate")); t1.FontSize = 15; t1.FontWeight = FontWeights.Bold;
+            sum.Inlines.Add(t1);
+            sum.Inlines.Add(new LineBreak());
+            sum.Inlines.Add(new Run(good + " în stare bună · " + warn + " de urmărit · " + bad + " cu probleme"));
+            sum.Inlines.Add(new LineBreak());
+            sum.Inlines.Add(new Run(urgent + " lucrări urgente · " + recommended + " recomandate"));
+            d.Blocks.Add(sum);
+
+            // ---- ce trebuie facut, pe prioritati
+            d.Blocks.Add(H2("Ce trebuie făcut"));
+            bool any = false;
+            for (int pri = 1; pri <= 3; pri++)
+            {
+                List<string[]> rows = new List<string[]>();
+                foreach (PcRecord p in pr.Pcs)
+                    foreach (Rec r in p.Recs)
+                        if (r.Priority == pri) rows.Add(new string[] { p.Title, r.Action + (r.Detail.Length > 0 ? " — " + r.Detail : "") });
+                if (rows.Count == 0) continue;
+                any = true;
+                string name = pri == 1 ? "Urgent" : pri == 2 ? "Recomandat" : "Opțional";
+                Paragraph ph = P(name + " (" + rows.Count + ")", 12.5, StatusColor(pri == 1 ? 2 : pri == 2 ? 1 : -1), true);
+                ph.Margin = new Thickness(0, 10, 0, 2); ph.KeepWithNext = true;
+                d.Blocks.Add(ph);
+                d.Blocks.Add(Grid(new double[] { 2, 5 }, new string[] { "Calculator", "Lucrare" }, rows, null));
+            }
+            if (!any) d.Blocks.Add(P("Nu e nevoie de nicio lucrare: toate calculatoarele sunt în stare bună.", 11.5, "#15803D", false));
+
+            // ---- necesar piese (pentru oferta)
+            Dictionary<string, int> parts = new Dictionary<string, int>();
+            Dictionary<string, List<string>> where = new Dictionary<string, List<string>>();
+            foreach (PcRecord p in pr.Pcs)
+                foreach (Rec r in p.Recs)
+                {
+                    if (string.IsNullOrEmpty(r.Part) || r.Priority == 3) continue;
+                    int c; parts.TryGetValue(r.Part, out c); parts[r.Part] = c + 1;
+                    if (!where.ContainsKey(r.Part)) where[r.Part] = new List<string>();
+                    where[r.Part].Add(p.Label);
+                }
+            if (parts.Count > 0)
+            {
+                d.Blocks.Add(H2("Necesar estimativ de piese"));
+                List<string[]> rows = new List<string[]>();
+                List<string> keys = new List<string>(parts.Keys);
+                keys.Sort();
+                foreach (string k in keys) rows.Add(new string[] { k, parts[k].ToString(), string.Join(", ", where[k].ToArray()) });
+                d.Blocks.Add(Grid(new double[] { 3, 1, 4 }, new string[] { "Piesă", "Buc.", "Pentru" }, rows, null));
+                d.Blocks.Add(P("Lista e orientativă: capacitățile și tipurile se confirmă la comandă (de ex. compatibilitatea plăcii de bază).", 9.5, "#64748B", false));
+            }
+
+            // ---- inventar
+            d.Blocks.Add(H2("Inventarul calculatoarelor"));
+            List<string[]> inv = new List<string[]>();
+            List<int> lv = new List<int>();
+            foreach (PcRecord p in pr.Pcs)
+            {
+                inv.Add(new string[] { p.Title + (string.IsNullOrEmpty(p.User) ? "" : "\n" + p.User), (p.Model ?? "") + "\n" + (p.Cpu ?? ""), p.Ram ?? "", p.Disks ?? "", p.Windows ?? "", Lvl.Text(p.Level < 0 ? 0 : p.Level) });
+                lv.Add(p.Level < 0 ? 0 : p.Level);
+            }
+            Table it = Grid(new double[] { 2, 3, 2, 2.4, 2, 1.2 }, new string[] { "Calculator", "Model / procesor", "RAM", "Discuri", "Windows", "Stare" }, inv, lv);
+            foreach (TableRowGroup g in it.RowGroups) foreach (TableRow r in g.Rows) foreach (TableCell c in r.Cells) foreach (Block b in c.Blocks) { Paragraph pp = b as Paragraph; if (pp != null) pp.FontSize = 9.5; }
+            d.Blocks.Add(it);
+
+            // ---- detalii pe fiecare calculator
+            d.Blocks.Add(H2("Detalii pe calculatoare"));
+            foreach (PcRecord p in pr.Pcs)
+            {
+                List<KV> props = new List<KV>();
+                Action<string, string> a = delegate(string k, string v) { if (string.IsNullOrEmpty(v)) return; KV kv = new KV(); kv.Key = k; kv.Value = v; props.Add(kv); };
+                a("Utilizator", p.User);
+                a("Model", p.Model);
+                a("Procesor", p.Cpu);
+                a("Memorie RAM", p.Ram);
+                a("Placă video", p.Gpu);
+                a("Windows", p.Windows);
+                foreach (SavedLine dl in p.DiskLines) a("Disc: " + dl.Name, dl.Status + " · " + dl.Summary);
+                a("Scor general", p.Score + " / 100");
+                a("Verificat la", p.Date.ToString("dd.MM.yyyy HH:mm", RO) + " (" + p.MachineName + ")");
+                a("Observații tehnician", p.Notes);
+                List<string> notes = new List<string>();
+                foreach (Rec r in p.Recs) notes.Add("[" + r.PriorityText + "] " + r.Action + (r.Part.Length > 0 ? " — piesă: " + r.Part : ""));
+                AddCard(d, p.Title, "", Lvl.Text(p.Level < 0 ? 0 : p.Level), p.Level < 0 ? 0 : p.Level, props, notes);
+            }
+
+            Paragraph foot = P("Raport generat cu Sănătate PC" + (lic != null && lic.IsPro ? " · licențiat pentru " + lic.Name : "") +
+                ". Valorile reflectă starea fiecărui calculator la data verificării lui.", 9.5, "#64748B", false);
+            foot.Margin = new Thickness(0, 18, 0, 0);
+            d.Blocks.Add(foot);
+            return d;
+        }
+
         // ------------------------------------------------------------ PDF (pagini randate ca imagini, A4)
         public static int SavePdf(FlowDocument doc, string path, string footerLeft)
         {

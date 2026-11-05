@@ -204,6 +204,7 @@ namespace InfoPcDisk
             pc.SetLevel(-1, "Info");
 
             Card win = sec.AddCard("Windows", "");
+            string winCaption = "";
             if (os.Count > 0)
             {
                 string disp = "", ubr = "";
@@ -222,6 +223,7 @@ namespace InfoPcDisk
                 }
                 catch (Exception) { }
                 string cap = Clean(S(os[0], "Caption")).Replace("Microsoft ", "");
+                winCaption = cap;
                 win.Title = cap;
                 win.Subtitle = (disp.Length > 0 ? "Versiunea " + disp + " · " : "") + "build " + S(os[0], "BuildNumber") + ubr + " · " + S(os[0], "OSArchitecture");
                 DateTime inst = D(os[0], "InstallDate"), boot = D(os[0], "LastBootUpTime");
@@ -247,7 +249,10 @@ namespace InfoPcDisk
             }
             win.Add("Ultima actualizare", last == DateTime.MinValue ? "—" : Date(last) + " (" + Ago(last) + ")");
             if (last != DateTime.MinValue && (DateTime.Now - last).TotalDays > 90)
+            {
                 win.Raise(1, "Windows nu a mai instalat actualizări de peste 3 luni. Verifică Windows Update.");
+                Recs.Add(2, "Windows", "Instalare actualizări Windows", "Ultima actualizare: " + Date(last) + ".", null);
+            }
 
             // spatiu liber pe discul de sistem
             try
@@ -258,8 +263,16 @@ namespace InfoPcDisk
                 double pct = tot > 0 ? free * 100.0 / tot : 100;
                 string col = pct < 5 || free < (5L << 30) ? "#F87171" : pct < 12 || free < (15L << 30) ? "#FBBF24" : null;
                 win.Add("Spațiu liber pe " + sd, Size(free, false) + " din " + Size(tot, false) + " (" + pct.ToString("0", RO) + "%)", col);
-                if (pct < 5 || free < (5L << 30)) win.Raise(2, "Discul de sistem e aproape plin. Windows și programele încetinesc sau dau erori. Eliberează spațiu.");
-                else if (pct < 12 || free < (15L << 30)) win.Raise(1, "Spațiul liber pe discul de sistem e mic. Ideal ar fi peste 15% liber.");
+                if (pct < 5 || free < (5L << 30))
+                {
+                    win.Raise(2, "Discul de sistem e aproape plin. Windows și programele încetinesc sau dau erori. Eliberează spațiu.");
+                    Recs.Add(1, "Windows", "Eliberare spațiu pe " + sd, "Liber doar " + Size(free, false) + " (" + pct.ToString("0", RO) + "%). Curățare fișiere temporare, Descărcări, sau disc mai mare.", null);
+                }
+                else if (pct < 12 || free < (15L << 30))
+                {
+                    win.Raise(1, "Spațiul liber pe discul de sistem e mic. Ideal ar fi peste 15% liber.");
+                    Recs.Add(2, "Windows", "Eliberare spațiu pe " + sd, "Liber " + Size(free, false) + " (" + pct.ToString("0", RO) + "%).", null);
+                }
             }
             catch (Exception) { }
 
@@ -290,6 +303,18 @@ namespace InfoPcDisk
             sec2.Add("Secure Boot", sb, sb.StartsWith("Activ") ? "#4ADE80" : "#FBBF24");
             sec2.SetLevel(-1, "Info");
             if (!tpm.StartsWith("TPM 2")) sec2.Note("Fără TPM 2.0 activ, Windows 11 nu se poate instala oficial. Se activează de obicei din BIOS (fTPM / PTT).");
+            bool tpmOk = tpm.StartsWith("TPM 2") && tpm.EndsWith("activ");
+            if (Regex.IsMatch(winCaption, @"Windows (XP|Vista|7|8)\b"))
+            {
+                win.Raise(2, "Sistemul de operare nu mai primește actualizări de securitate.");
+                Recs.Add(1, "Windows", "Înlocuire sistem de operare (" + winCaption + ")", "Fără actualizări de securitate. Instalare Windows 11 sau, dacă hardware-ul nu permite, înlocuirea calculatorului.", "Licență Windows 11 Pro");
+            }
+            else if (winCaption.IndexOf("Windows 10", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                win.Raise(1, "Windows 10 nu mai primește actualizări gratuite din 14 octombrie 2025.");
+                if (tpmOk) Recs.Add(2, "Windows", "Upgrade gratuit la Windows 11", "Windows 10 nu mai primește actualizări din 14.10.2025. TPM 2.0 e activ; verifică și compatibilitatea procesorului.", null);
+                else Recs.Add(2, "Windows", "Activare TPM 2.0 din BIOS, apoi upgrade la Windows 11", "Windows 10 nu mai primește actualizări din 14.10.2025, iar TPM 2.0 nu e activ (" + tpm + "). Dacă placa nu are TPM 2.0, calculatorul trebuie înlocuit sau trecut pe ESU.", null);
+            }
 
             sec.Summary = win.Title;
             sec.Finish();
@@ -326,15 +351,27 @@ namespace InfoPcDisk
                 {
                     string col = sn.CpuTemp >= 95 ? "#F87171" : sn.CpuTemp >= 85 ? "#FBBF24" : "#4ADE80";
                     c.Add("Temperatură", sn.CpuTemp + " °C" + (sn.CpuTempMax > sn.CpuTemp ? " (max " + sn.CpuTempMax + " °C)" : ""), col);
-                    if (sn.CpuTemp >= 95) c.Raise(2, "Procesorul e foarte fierbinte (" + sn.CpuTemp + " °C). Curăță radiatorul de praf și schimbă pasta termoconductoare.");
-                    else if (sn.CpuTemp >= 85) c.Raise(1, "Procesorul e cald (" + sn.CpuTemp + " °C). Dacă nu rulează ceva greu acum, verifică răcirea.");
+                    if (sn.CpuTemp >= 95)
+                    {
+                        c.Raise(2, "Procesorul e foarte fierbinte (" + sn.CpuTemp + " °C). Curăță radiatorul de praf și schimbă pasta termoconductoare.");
+                        Recs.Add(1, "Procesor", "Curățare de praf și pastă termoconductoare nouă", "Procesorul ajunge la " + sn.CpuTemp + " °C.", "Pastă termoconductoare");
+                    }
+                    else if (sn.CpuTemp >= 85)
+                    {
+                        c.Raise(1, "Procesorul e cald (" + sn.CpuTemp + " °C). Dacă nu rulează ceva greu acum, verifică răcirea.");
+                        Recs.Add(2, "Procesor", "Verificare răcire și curățare de praf", "Procesorul ajunge la " + sn.CpuTemp + " °C.", null);
+                    }
                 }
                 else
                 {
                     c.Add("Temperatură", "indisponibilă fără senzor");
                     c.Note("Windows nu oferă temperatura exactă a procesorului. Dacă pornești LibreHardwareMonitor (gratuit) și reîmprospătezi, aplicația o preia automat.");
                 }
-                if (st.WheaFatal > 0) c.Raise(2, "Windows a înregistrat erori hardware fatale (WHEA) în ultimele 30 de zile. Cauze frecvente: overclock, procesor sau sursă de alimentare.");
+                if (st.WheaFatal > 0)
+                {
+                    c.Raise(2, "Windows a înregistrat erori hardware fatale (WHEA) în ultimele 30 de zile. Cauze frecvente: overclock, procesor sau sursă de alimentare.");
+                    Recs.Add(1, "Hardware", "Diagnosticare erori hardware grave (WHEA)", st.WheaFatal + " erori în 30 de zile. Verifică overclock-ul, sursa, procesorul și memoria.", null);
+                }
                 else if (st.WheaCorrected > 20) c.Raise(1, "Au apărut multe erori hardware corectate (WHEA). Pot indica instabilitate la procesor, RAM sau placa de bază.");
                 sec.Summary = name + " · " + cores + " nuclee / " + thr + " fire";
             }
@@ -476,7 +513,16 @@ namespace InfoPcDisk
             if (rated > 0) sum.Add("Frecvență", (conf > 0 ? conf + " MT/s" : "") + (conf > 0 && rated > conf ? " (plăcuțele suportă " + rated + ")" : (conf == 0 ? rated + " MT/s" : "")));
             if (slots > 0) sum.Add("Sloturi ocupate", mods.Count + " din " + slots);
             if (maxCap > 0) sum.Add("Maxim suportat", Size(maxCap, false));
-            if (total > 0 && total < (8L << 30)) sum.Note("Sub 8 GB de RAM e puțin pentru Windows 10/11 modern. Un upgrade ar face calculatorul mult mai rapid.");
+            if (total > 0 && total < (8L << 30))
+            {
+                sum.Note("Sub 8 GB de RAM e puțin pentru Windows 10/11 modern. Un upgrade ar face calculatorul mult mai rapid.");
+                bool sodimm = false;
+                foreach (ManagementObject m in mods) if (L(m, "FormFactor") == 12) sodimm = true;
+                bool freeSlot = slots > mods.Count;
+                long addGb = Math.Max(4, 8 - total / (1L << 30));
+                string part = "Memorie RAM " + (freeSlot ? addGb : 8) + " GB " + (type.Length > 0 ? type + " " : "") + (sodimm ? "SO-DIMM" : "DIMM") + (conf > 0 ? " " + conf + " MT/s" : "");
+                Recs.Add(2, "Memorie RAM", "Upgrade memorie RAM la minim 8 GB", "Acum " + Size(total, false) + (freeSlot ? "; există slot liber." : "; toate sloturile sunt ocupate, se înlocuiește o plăcuță."), part);
+            }
             if (mods.Count == 1 && slots >= 2) sum.Note("E montată o singură plăcuță: memoria merge pe un singur canal. Două plăcuțe identice (dual channel) aduc performanță vizibil mai bună.");
             bool mixed = false;
             for (int i = 1; i < mods.Count; i++) if (caps[i] != caps[0] || (!Junk(parts[i]) && parts[i].Trim() != parts[0].Trim())) mixed = true;
@@ -484,7 +530,11 @@ namespace InfoPcDisk
             if (conf > 0 && rated > conf + 100) sum.Note("Memoria rulează sub viteza suportată. Din BIOS poți activa profilul XMP/EXPO, dacă placa de bază îl suportă.");
             sum.SetLevel(0, null);
 
-            if (st.MemTestResult == 1) sum.Raise(2, "Testul de memorie Windows din " + Date(st.MemTestDate) + " a găsit ERORI. Plăcuța defectă trebuie înlocuită.");
+            if (st.MemTestResult == 1)
+            {
+                sum.Raise(2, "Testul de memorie Windows din " + Date(st.MemTestDate) + " a găsit ERORI. Plăcuța defectă trebuie înlocuită.");
+                Recs.Add(1, "Memorie RAM", "Înlocuire plăcuță RAM defectă", "Testul de memorie din " + Date(st.MemTestDate) + " a găsit erori.", "Memorie RAM " + (type.Length > 0 ? type : ""));
+            }
             else if (st.MemTestResult == 0) sum.Add("Ultimul test de memorie", "fără erori (" + Date(st.MemTestDate) + ")", "#4ADE80");
             else sum.Add("Ultimul test de memorie", "nu a fost rulat");
             if (st.BsodHints.Exists(delegate(string h) { return h.IndexOf("RAM", StringComparison.Ordinal) >= 0; }))
@@ -613,8 +663,8 @@ namespace InfoPcDisk
                 if (basic) c.SetLevel(1, "Fără driver");
                 else if (err > 0) c.SetLevel(2, "Eroare driver");
                 else c.SetLevel(0, "Funcționează");
-                if (basic) c.Note("Placa video folosește driverul generic Microsoft: imagine lentă, fără accelerare 3D. Instalează driverul de pe site-ul NVIDIA, AMD sau Intel.");
-                if (err > 0) c.Note("Windows raportează o problemă la acest dispozitiv (cod " + err + " în Device Manager). Reinstalează driverul plăcii video.");
+                if (basic) { c.Note("Placa video folosește driverul generic Microsoft: imagine lentă, fără accelerare 3D. Instalează driverul de pe site-ul NVIDIA, AMD sau Intel."); Recs.Add(2, "Placă video", "Instalare driver placă video", "Rulează cu driverul generic Microsoft.", null); }
+                if (err > 0) { c.Note("Windows raportează o problemă la acest dispozitiv (cod " + err + " în Device Manager). Reinstalează driverul plăcii video."); Recs.Add(1, "Placă video", "Reinstalare driver placă video", "Eroare în Device Manager, cod " + err + ".", null); }
                 bool msDriver = S(g, "AdapterCompatibility").StartsWith("Microsoft", StringComparison.OrdinalIgnoreCase);
                 if (dd != DateTime.MinValue && (DateTime.Now - dd).TotalDays > 730 && !basic && !msDriver)
                     c.Note("Driverul are peste 2 ani. Un driver nou aduce remedieri și performanță mai bună, mai ales la jocuri.");
@@ -636,7 +686,7 @@ namespace InfoPcDisk
                 if (temp > 0)
                 {
                     c.Add("Temperatură", temp + " °C", temp >= 90 ? "#F87171" : temp >= 82 ? "#FBBF24" : "#4ADE80");
-                    if (temp >= 90) c.Raise(2, "Placa video e foarte fierbinte (" + temp + " °C). Curăță ventilatoarele și verifică circulația aerului în carcasă.");
+                    if (temp >= 90) { c.Raise(2, "Placa video e foarte fierbinte (" + temp + " °C). Curăță ventilatoarele și verifică circulația aerului în carcasă."); Recs.Add(1, "Placă video", "Curățare placă video și verificare ventilatoare", "Ajunge la " + temp + " °C.", null); }
                     else if (temp >= 82) c.Raise(1, "Placa video e caldă (" + temp + " °C). E normal în jocuri, dar nu în repaus.");
                 }
                 if (st.BsodHints.Exists(delegate(string x) { return x.IndexOf("video", StringComparison.Ordinal) >= 0; }))
@@ -776,8 +826,8 @@ namespace InfoPcDisk
                     c.Add("Capacitate acum", (fc / 1000.0).ToString("0.#", RO) + " Wh");
                     string col = health < 50 ? "#F87171" : health < 75 ? "#FBBF24" : "#4ADE80";
                     c.Add("Sănătate baterie", health.ToString("0", RO) + "% (uzură " + (100 - health).ToString("0", RO) + "%)", col);
-                    if (health < 50) c.Raise(2, "Bateria mai ține sub jumătate din capacitatea inițială. Merită înlocuită.");
-                    else if (health < 75) c.Raise(1, "Bateria a pierdut o parte vizibilă din capacitate. Încă e folosibilă, dar autonomia e mai mică.");
+                    if (health < 50) { c.Raise(2, "Bateria mai ține sub jumătate din capacitatea inițială. Merită înlocuită."); Recs.Add(2, "Baterie", "Înlocuire baterie laptop", "Mai are " + health.ToString("0", RO) + "% din capacitate.", "Baterie laptop" + (dev.Length > 0 ? " " + dev : "")); }
+                    else if (health < 75) { c.Raise(1, "Bateria a pierdut o parte vizibilă din capacitate. Încă e folosibilă, dar autonomia e mai mică."); Recs.Add(3, "Baterie", "Înlocuire baterie, când autonomia nu mai ajunge", "Mai are " + health.ToString("0", RO) + "% din capacitate.", null); }
                     else c.SetLevel(0, null);
                     sec.Summary = "Sănătate " + health.ToString("0", RO) + "%";
                 }
@@ -837,7 +887,7 @@ namespace InfoPcDisk
                         if (sig < 40) c.Note("Semnalul Wi-Fi e slab. Apropie calculatorul de router sau folosește un repetor/cablu.");
                     }
                 }
-                if (!wifi && up && sp == 100000000) c.Note("Conexiunea pe cablu merge doar la 100 Mbps. De obicei e de vină cablul sau mufa (trebuie 1 Gbps).");
+                if (!wifi && up && sp == 100000000) { c.Note("Conexiunea pe cablu merge doar la 100 Mbps. De obicei e de vină cablul sau mufa (trebuie 1 Gbps)."); Recs.Add(3, "Rețea", "Verificare cablu de rețea / mufă (merge la 100 Mbps)", "Placa " + name + " ar trebui să meargă la 1 Gbps.", "Patch cord UTP Cat6"); }
                 c.SetLevel(up ? 0 : -1, up ? "Conectat" : "Neconectat");
                 if (up) connected++;
             }
@@ -965,8 +1015,9 @@ namespace InfoPcDisk
             c.Add("Reîncercări de citire pe disc", st.DiskRetry.ToString(), st.DiskRetry > 5 ? "#FBBF24" : null);
             c.Add("Erori sistem de fișiere", st.NtfsCorrupt.ToString(), st.NtfsCorrupt > 0 ? "#FBBF24" : null);
 
-            if (st.Bsod >= 3) c.Raise(2, st.Bsod + " ecrane albastre într-o lună: sistemul e instabil.");
+            if (st.Bsod >= 3) { c.Raise(2, st.Bsod + " ecrane albastre într-o lună: sistemul e instabil."); Recs.Add(1, "Stabilitate", "Diagnosticare ecrane albastre", st.Bsod + " în ultimele 30 de zile" + (st.BsodLines.Count > 0 ? "; ultimul: " + st.BsodLines[0] : "") + ".", null); }
             else if (st.Bsod > 0) c.Raise(1, st.Bsod + (st.Bsod == 1 ? " ecran albastru" : " ecrane albastre") + " în ultima lună.");
+            if (st.PowerLoss >= 3) Recs.Add(2, "Alimentare", "Verificare sursă de alimentare / UPS", st.PowerLoss + " opriri bruște în 30 de zile.", "UPS");
             if (st.PowerLoss >= 3) c.Raise(1, st.PowerLoss + " opriri bruște, fără închidere corectă. Dacă nu au fost pene de curent sau opriri din buton, verifică sursa de alimentare și temperaturile.");
             else if (st.PowerLoss > 0) c.Note(st.PowerLoss + (st.PowerLoss == 1 ? " oprire bruscă" : " opriri bruște") + " (pană de curent, oprire din buton sau blocare).");
             if (st.WheaFatal > 0) c.Raise(2, "Erori hardware grave raportate de procesor sau de placa de bază. Cauze frecvente: overclock, sursă slabă, procesor sau RAM.");

@@ -28,7 +28,7 @@ using System.Windows.Media.Imaging;
 
 namespace InfoPcDisk
 {
-    public class MainApp
+    public partial class MainApp
     {
         // adresa la care se cer ofertele / licentele Pro
         const string SalesEmail = "catalin@infopc.ro";
@@ -41,6 +41,7 @@ namespace InfoPcDisk
         System.Windows.Shapes.Path ringArc, sumRing;
         List<Section> sections = new List<Section>();
         List<DiskReport> disks = new List<DiskReport>();
+        List<Rec> currentRecs = new List<Rec>();
         License lic;
         Settings settings;
         LiveMonitor live;
@@ -151,6 +152,7 @@ namespace InfoPcDisk
             refreshBtn.Click += delegate { Load(); };
             saveBtn.Click += delegate { SaveReport(); };
             settingsBtn.Click += delegate { ShowSettings(); };
+            F<Button>("ProjectsBtn").Click += delegate { ShowProjects(); };
             actionBtn.Click += delegate { RunAction(); };
             bool started = false;
             win.ContentRendered += delegate
@@ -423,8 +425,10 @@ namespace InfoPcDisk
             {
                 List<Section> secs = new List<Section>();
                 List<DiskReport> dl = new List<DiskReport>();
+                List<Rec> recs = new List<Rec>();
                 try
                 {
+                    Recs.Reset();
                     Status("Citesc jurnalul de stabilitate…");
                     Stability st = Collect.ReadStability();
                     Status("Citesc senzorii de temperatură…");
@@ -454,13 +458,27 @@ namespace InfoPcDisk
                     secs.Add(mon);
                     if (bat != null) secs.Add(bat);
                     secs.Add(net); secs.Add(sys); secs.Add(stab);
+                    recs = Recs.Take();
+                    Section todo = Recs.BuildSection(recs);
+                    secs.Insert(0, todo);
                     secs.Insert(0, BuildSummary(secs, sys, pro));
                     Section lv = new Section("live", "Monitorizare live", "");
                     lv.Summary = "Încărcare și temperaturi în timp real";
-                    secs.Insert(1, lv);
+                    secs.Insert(2, lv);
                     if (!pro)
                         foreach (Section s in secs)
+                        {
+                            if (s.Key == "todo")
+                            {
+                                int urg = 0; foreach (Rec r in recs) if (r.Priority == 1) urg++;
+                                s.Cards.Clear();
+                                Card lc = s.AddCard(recs.Count == 0 ? "Nu e nimic de făcut" : recs.Count + (recs.Count == 1 ? " lucrare recomandată" : " lucrări recomandate"), urg > 0 ? urg + " urgente" : "pentru acest calculator");
+                                lc.SetLevel(recs.Count == 0 ? 0 : s.Level, null);
+                                if (recs.Count > 0) lc.Locked = true;
+                                continue;
+                            }
                             if (s.Key != "sumar") foreach (Card c in s.Cards) c.Locked = true;
+                        }
                 }
                 catch (Exception ex)
                 {
@@ -474,6 +492,7 @@ namespace InfoPcDisk
                 {
                     sections = secs;
                     disks = dl;
+                    currentRecs = recs;
                     nav.ItemsSource = null;
                     nav.ItemsSource = sections;
                     diskList.ItemsSource = disks;
@@ -502,6 +521,7 @@ namespace InfoPcDisk
             int worst = -1, warn = 0, bad = 0;
             foreach (Section s in secs)
             {
+                if (s.Key == "todo") continue;
                 if (s.Level > worst) worst = s.Level;
                 if (s.Level == 1) warn++;
                 if (s.Level == 2) bad++;
@@ -516,7 +536,7 @@ namespace InfoPcDisk
             head.Badge = score.ToString();
             foreach (Section s in secs)
             {
-                if (s.Level < 1) continue;
+                if (s.Level < 1 || s.Key == "todo") continue;
                 string first = null;
                 if (pro) foreach (Card x in s.Cards) { if (x.Level >= 1 && x.NoteList.Count > 0) { first = x.NoteList[0]; break; } }
                 head.Note(s.Name + (s.Level == 2 ? " — problemă" : " — de urmărit") + (first != null ? ": " + first : ""));
@@ -661,6 +681,15 @@ namespace InfoPcDisk
                 c.SetLevel(r.Level, r.HealthText);
                 if (r.Level >= 1) foreach (string x in r.Reasons) c.Note(x);
                 s.Cards.Add(c);
+                bool usb = r.Interface == "USB";
+                bool sysDisk = (" " + r.Letters + " ").IndexOf(" C: ", StringComparison.OrdinalIgnoreCase) >= 0;
+                string ssd = Recs.SsdFor(r.SizeBytes, r.IsNvme);
+                if (r.Level == 2)
+                    Recs.Add(1, "Disc", "Backup imediat și înlocuire disc " + r.Title + " (" + r.SizeText + ")", r.Reasons.Count > 0 ? r.Reasons[0] : r.Verdict, usb ? null : ssd);
+                else if (r.Level == 1)
+                    Recs.Add(2, "Disc", "Backup și înlocuire planificată disc " + r.Title + " (" + r.SizeText + ")", r.Reasons.Count > 0 ? r.Reasons[0] : r.Verdict, usb ? null : ssd);
+                else if (sysDisk && !r.IsSsd && r.TypeBadge == "HDD")
+                    Recs.Add(2, "Disc", "Înlocuire HDD de sistem cu SSD", "Windows rulează de pe HDD (" + r.Title + "). Cu SSD, pornirea și programele merg de câteva ori mai repede.", Recs.SsdFor(Math.Min(r.SizeBytes, 512000000000L), false));
             }
             if (st.DiskBadBlock > 0 && worst < 2) worst = 2;
             s.Summary = dl.Count == 0 ? "Nu am găsit discuri" : string.Join(" + ", names.ToArray()) + (issues > 0 ? " · " + issues + " cu probleme" : "");

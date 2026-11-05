@@ -1,4 +1,4 @@
-# Test de pornire in CI: incarca fiecare exe ca assembly, verifica ca XAML-ul se parseaza
+﻿# Test de pornire in CI: incarca fiecare exe ca assembly, verifica ca XAML-ul se parseaza
 # si ruleaza colectorii Sanatate PC (fara interfata), ca sa prindem erori inainte de livrare.
 $ErrorActionPreference = 'Stop'
 Set-Location (Split-Path $PSScriptRoot)
@@ -6,10 +6,10 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
 
 foreach ($exe in 'RecuperareFisiere', 'SanatatePC', 'GeneratorLicente') {
     $asm = [Reflection.Assembly]::LoadFrom((Resolve-Path "dist\$exe.exe"))
-    $s = $asm.GetManifestResourceStream('MainWindow.xaml')
-    if (-not $s) { throw "$exe : lipseste resursa MainWindow.xaml" }
-    $w = [Windows.Markup.XamlReader]::Load($s)
-    Write-Host "$exe : XAML OK ($($w.Title))"
+    foreach ($rn in $asm.GetManifestResourceNames() | Where-Object { $_ -like '*.xaml' }) {
+        $w = [Windows.Markup.XamlReader]::Load($asm.GetManifestResourceStream($rn))
+        Write-Host "$exe : $rn OK ($($w.Title))"
+    }
 }
 
 $asm = [Reflection.Assembly]::LoadFrom((Resolve-Path 'dist\SanatatePC.exe'))
@@ -61,6 +61,32 @@ $pdfPath = [string](Join-Path (Get-Location).Path 'shots\raport_test.pdf')
 $pages = $R.GetMethod('SavePdf').Invoke($null, [object[]]@($doc, $pdfPath, [string]'Info PC Electric - Sanatate PC Pro'))
 Write-Host "PDF: $pages pagini, $((Get-Item shots\raport_test.pdf).Length) octeti"
 if ($pages -lt 1) { throw 'PDF gol' }
+
+# proiect cu 3 calculatoare + raport pe institutie
+$recsT = $asm.GetType('InfoPcDisk.Recs')
+$recNow = $recsT.GetMethod('Take').Invoke($null, @())
+Write-Host "Recomandari pentru PC-ul de test: $($recNow.Count)"
+foreach ($r in $recNow) { Write-Host ("   [{0}] {1} | {2} | {3}" -f $r.PriorityText, $r.Component, $r.Action, $r.Part) }
+$P = $asm.GetType('InfoPcDisk.Projects'); $PR = $asm.GetType('InfoPcDisk.PcRecord'); $RecT = $asm.GetType('InfoPcDisk.Rec')
+$base = Join-Path $env:RUNNER_TEMP 'proiecte'
+$proj = $P.GetMethod('Create').Invoke($null, @($base, [string]'Scoala Gimnaziala Test'))
+function NewRec($pri, $comp, $act, $det, $part) { $r = [Activator]::CreateInstance($RecT); $r.Priority = $pri; $r.Component = $comp; $r.Action = $act; $r.Detail = $det; $r.Part = $part; return $r }
+$labels = @(@('Secretariat PC1', 'Secretariat', 'Maria Ionescu', 0), @('Laborator PC3', 'Sala 12', '', 2), @('Director', 'Direcțiune', 'Director', 1))
+foreach ($lb in $labels) {
+    $rec = $PR.GetMethod('FromCurrent').Invoke($null, [object[]]@($list, $dl, $recNow, [string]$lb[0], [string]$lb[1], [string]$lb[2], [string]'verificat in CI'))
+    $rec.Level = $lb[3]; $rec.Score = @(100, 35, 72)[$lb[3]]
+    if ($lb[3] -eq 2) { $rec.Recs.Add((NewRec 1 'Disc' 'Backup imediat și înlocuire disc WDC WD5000 (500 GB)' '12 sectoare instabile.' 'SSD 512 GB SATA 2.5"')) ; $rec.Recs.Add((NewRec 2 'Memorie RAM' 'Upgrade memorie RAM la minim 8 GB' 'Acum 4 GB; există slot liber.' 'Memorie RAM 4 GB DDR4 DIMM')) }
+    if ($lb[3] -eq 1) { $rec.Recs.Add((NewRec 2 'Disc' 'Înlocuire HDD de sistem cu SSD' 'Windows rulează de pe HDD.' 'SSD 512 GB SATA 2.5"')) }
+    $P.GetMethod('Save').Invoke($null, @($proj, $rec))
+}
+$all = $P.GetMethod('List').Invoke($null, @($base))
+$pj = $all[0]
+Write-Host "Proiect: $($pj.Name) - $($pj.Sub)"
+if ($pj.Pcs.Count -ne 3) { throw "Proiectul ar trebui sa aiba 3 calculatoare, are $($pj.Pcs.Count)" }
+$pdoc = $R.GetMethod('BuildProject').Invoke($null, @($pj, $v, $set))
+$pdfP = [string](Join-Path (Get-Location).Path 'shots\raport_proiect.pdf')
+$np = $R.GetMethod('SavePdf').Invoke($null, [object[]]@($pdoc, $pdfP, [string]'Info PC Electric - Scoala Gimnaziala Test'))
+Write-Host "PDF proiect: $np pagini"
 
 # motorul de recuperare: test pe o imagine de disc sintetica (doar cautare profunda)
 $rec = [Reflection.Assembly]::LoadFrom((Resolve-Path 'dist\RecuperareFisiere.exe'))

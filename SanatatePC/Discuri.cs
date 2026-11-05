@@ -61,6 +61,7 @@ namespace InfoPcDisk
         public List<SmartAttr> Attributes { get; set; }
 
         public int LifeLeft = -1, Temp = -1, TempMax = -1;
+        public long SizeBytes;
         public long Hours = -1, Cycles = -1;
         public bool IsSsd, IsNvme;
         public int Level; // 0 bun, 1 atentie, 2 rau, -1 necunoscut
@@ -177,6 +178,7 @@ namespace InfoPcDisk
             r.IsSsd = r.IsNvme || string.Equals(media, "SSD", StringComparison.OrdinalIgnoreCase);
             bool isHdd = string.Equals(media, "HDD", StringComparison.OrdinalIgnoreCase);
             r.SizeText = FormatBytes(size, true);
+            r.SizeBytes = size;
             r.Interface = string.IsNullOrEmpty(bus) ? "—" : bus;
             r.TypeBadge = r.IsNvme ? "SSD NVMe" : r.IsSsd ? "SSD" : isHdd ? "HDD" : (string.Equals(bus, "USB", StringComparison.OrdinalIgnoreCase) ? "USB" : "Disc");
             r.Subtitle = r.TypeBadge + " · " + r.SizeText + (r.Letters.Length > 0 ? " · " + r.Letters : "") + " · disc #" + number;
