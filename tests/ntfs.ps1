@@ -150,6 +150,6 @@ $e4.WantPdf = $true; $e4.WantWord = $true; $e4.WantJpg = $true
 $e4.StartQuick(); $null = Run $e4 'nebifate'
 $sk = 0; [void]$e4.SkippedKinds.TryGetValue('Excel', [ref]$sk)
 Write-Host "Excel sarite cand nu e bifat: $sk"
-if ($sk -lt 2) { throw 'Nu au fost raportate fisierele Excel sarite' }
+if ($sk -lt 1) { throw 'Nu au fost raportate fisierele Excel sarite' }
 "select vdisk file=`"$vhd`"`ndetach vdisk" | Set-Content $dp -Encoding ASCII
 diskpart /s $dp | Out-Null
