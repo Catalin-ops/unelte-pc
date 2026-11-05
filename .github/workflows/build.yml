@@ -18,6 +18,9 @@ jobs:
       - name: Test pornire (verifica XAML si initializare)
         shell: powershell
         run: ./tests/smoke.ps1
+      - name: Test recuperare pe partitie NTFS reala
+        shell: powershell
+        run: ./tests/ntfs.ps1
       - name: Installer + test instalare + capturi Store
         shell: powershell
         run: ./tests/installer.ps1
