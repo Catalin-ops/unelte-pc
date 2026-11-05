@@ -686,7 +686,12 @@ namespace InfoPcRecover
                     else if (f.Runs != null && f.Runs.Count > 0 && f.Runs[0][0] >= 0) n = rd.Read(f.Runs[0][0] * cluster, head, 0, 512);
                     bool okSig = SignatureMatches(f.Kind, f.Name, head, n);
                     if (f.Runs == null && f.Resident == null) { f.Status = "Fara date"; f.StatusColor = "#EF4444"; }
-                    else if (okSig) { f.Status = f.Status2 ?? "Bun"; f.StatusColor = "#22C55E"; f.Selected = true; }
+                    else if (okSig)
+                    {
+                        string problem = CheckIntegrity(f);
+                        if (problem == null) { f.Status = f.Status2 ?? "Bun"; f.StatusColor = "#22C55E"; f.Selected = true; }
+                        else { f.Status = problem; f.StatusColor = "#F59E0B"; if (problem.IndexOf("TRIM") >= 0) Interlocked.Increment(ref Trimmed); }
+                    }
                     else if (n > 0 && IsZero(head, 0, n) && ZeroedOnDisk(f)) { f.Status = "Golit de SSD (TRIM)"; f.StatusColor = "#EF4444"; Interlocked.Increment(ref Trimmed); }
                     else { f.Status = "Probabil suprascris"; f.StatusColor = "#EF4444"; }
                 }
@@ -696,6 +701,74 @@ namespace InfoPcRecover
                 Done = i2;
             }
             Phase = "Gata";
+        }
+
+        // verifica tot fisierul, nu doar inceputul: zone golite (TRIM/suprascrise) si finalul corect pe tip
+        string CheckIntegrity(FoundFile f)
+        {
+            if (f.Resident != null) return null;
+            if (f.Runs == null) return null;
+            long size = f.Size;
+            byte[] buf = new byte[1 << 16];
+            int zeroBlocks = 0, blocks = 0;
+            long pos = 0;
+            byte[] tail = new byte[(int)Math.Min(size, 65536)];
+            long sampleStep = size <= (32L << 20) ? 1 : Math.Max(1, (size / buf.Length) / 256); // fisiere mari: ~256 mostre
+            long idx = 0;
+            foreach (long[] run in f.Runs)
+            {
+                long bytes = Math.Min(run[1] * cluster, size - pos);
+                if (bytes <= 0) break;
+                if (run[0] < 0) { pos += bytes; continue; }   // zona rara (sparse), normala
+                for (long o = 0; o < bytes; o += buf.Length, idx++)
+                {
+                    int c = (int)Math.Min(buf.Length, bytes - o);
+                    bool inTail = pos + o + c > size - tail.Length;
+                    if (!inTail && idx % sampleStep != 0) continue;
+                    int n = rd.Read(run[0] * cluster + o, buf, 0, c);
+                    if (n <= 0) return "Necitibil (sector defect)";
+                    for (int b = 0; b + 4096 <= n; b += 4096) { blocks++; if (IsZero(buf, b, 4096)) zeroBlocks++; }
+                    if (inTail)
+                    {
+                        long tStart = size - tail.Length;
+                        for (int k = 0; k < n; k++)
+                        {
+                            long ap = pos + o + k;
+                            if (ap >= tStart && ap < size) tail[ap - tStart] = buf[k];
+                        }
+                    }
+                    if (CancelRequested) return null;
+                }
+                pos += bytes;
+            }
+            string ext = f.Name.Substring(f.Name.LastIndexOf('.') + 1).ToLowerInvariant();
+            bool compressed = ext == "jpg" || ext == "jpeg" || ext == "jpe" || ext == "jfif" || ext.EndsWith("x") || ext == "docm" || ext == "xlsm";
+            if (compressed && zeroBlocks > 0)
+                return zeroBlocks * 2 >= blocks ? "Golit de SSD (TRIM)" : "Parțial golit (TRIM)";
+            int tl = tail.Length;
+            while (tl > 0 && tail[tl - 1] == 0) tl--;     // zerouri de umplutura la final
+            if (tl == 0) return "Golit de SSD (TRIM)";
+            string t = Encoding.ASCII.GetString(tail, Math.Max(0, tl - 2048), Math.Min(tl, 2048));
+            if (ext == "pdf")
+            {
+                if (t.IndexOf("%%EOF") < 0) return zeroBlocks > 0 ? "Parțial golit (TRIM)" : "Incomplet (lipsește finalul)";
+                if (zeroBlocks * 4 > blocks) return "Parțial golit (TRIM)";
+            }
+            else if (compressed && ext != "jpg" && ext != "jpeg" && ext != "jpe" && ext != "jfif")
+            {
+                bool eocd = false;
+                for (int k = tl - 22; k >= Math.Max(0, tl - 65557) && !eocd; k--)
+                    if (tail[k] == 0x50 && tail[k + 1] == 0x4B && tail[k + 2] == 5 && tail[k + 3] == 6) eocd = true;
+                if (!eocd) return "Incomplet (lipsește finalul)";
+            }
+            else if (ext == "jpg" || ext == "jpeg" || ext == "jpe" || ext == "jfif")
+            {
+                bool end = false;
+                for (int k = tl - 2; k >= Math.Max(0, tl - 64) && !end; k--) if (tail[k] == 0xFF && tail[k + 1] == 0xD9) end = true;
+                if (!end) return "Incomplet (lipsește finalul)";
+            }
+            else if (zeroBlocks * 4 > blocks) return "Parțial golit (TRIM)";
+            return null;
         }
 
         // verifica inca 3 zone din fisier: daca toate sunt zero, SSD-ul a golit fisierul (TRIM)

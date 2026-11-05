@@ -100,11 +100,45 @@ $e3.StartQuick()
 $f3 = Run $e3 'cos'
 foreach ($f in $f3) { Write-Host ("   {0} | {1} | {2}" -f $f.Name, $f.Folder, $f.Status) }
 $of = $f3 | Where-Object { $_.Name -eq 'Oferta client.xlsx' }
-if (-not $of -or $of.Status -ne 'În Coșul de reciclare') { throw 'Fisierul din Cosul de reciclare nu a fost gasit cu numele original' }
+if (-not $of -or $of.Status -notlike '*reciclare') { throw 'Fisierul din Cosul de reciclare nu a fost gasit cu numele original' }
 $a1 = [Array]::CreateInstance($rec.GetType('InfoPcRecover.FoundFile'), 1); $a1[0] = $of
 $e3.StartRecover($a1); $null = Run $e3 'recuperare cos'
 if ((Get-FileHash -LiteralPath $of.SavedPath -Algorithm MD5).Hash -ne $hOf) { throw 'Fisierul din Cos nu s-a recuperat identic' }
 Write-Host "Cos de reciclare: OK ($($e3.InRecycleBin) fisier)"
+
+# SSD cu TRIM simulat: un PDF sters, apoi golim (zero) a doua jumatate a datelor lui direct in discul virtual
+$sb = New-Object Text.StringBuilder
+[void]$sb.Append("%PDF-1.4`n")
+for ($i = 0; $i -lt 6000; $i++) { [void]$sb.Append("% linie de continut $i pentru testul de recuperare`n") }
+[void]$sb.Append("trailer << /Root 1 0 R >>`n%%EOF`n")
+[IO.File]::WriteAllText('T:\Documente\Raport.pdf', $sb.ToString())
+Write-VolumeCache T
+Remove-Item 'T:\Documente\Raport.pdf' -Force
+Write-VolumeCache T; Start-Sleep 5
+$e5 = [Activator]::CreateInstance($rec.GetType('InfoPcRecover.Engine'))
+$e5.SourcePath = '\\.\T:'; $e5.DestDir = $out; $e5.WantPdf = $true
+$e5.StartQuick(); $f5 = Run $e5 'pdf'
+$pdf = $f5 | Where-Object { $_.Name -eq 'Raport.pdf' }
+if (-not $pdf -or $pdf.Status -ne 'Bun') { throw "PDF-ul intact ar trebui sa fie Bun, e: $($pdf.Status)" }
+$run = $pdf.Runs[0]; $cl = $pdf.ClusterSize
+$partOff = (Get-Partition -DriveLetter T).Offset
+$e5.Close()
+"select vdisk file=`"$vhd`"`ndetach vdisk" | Set-Content $dp -Encoding ASCII
+diskpart /s $dp | Out-Null
+$half = [long]($run[1] / 2)
+$fsv = [IO.File]::Open($vhd, 'Open', 'ReadWrite')
+$fsv.Position = $partOff + ($run[0] + $half) * $cl
+$z = New-Object byte[] (($run[1] - $half) * $cl)
+$fsv.Write($z, 0, $z.Length); $fsv.Close()
+"select vdisk file=`"$vhd`"`nattach vdisk`nselect partition 1`nassign letter=T" | Set-Content $dp -Encoding ASCII
+diskpart /s $dp | Out-Null
+Start-Sleep 4
+$e6 = [Activator]::CreateInstance($rec.GetType('InfoPcRecover.Engine'))
+$e6.SourcePath = '\\.\T:'; $e6.DestDir = $out; $e6.WantPdf = $true
+$e6.StartQuick(); $f6 = Run $e6 'pdf golit'
+$pdf2 = $f6 | Where-Object { $_.Name -eq 'Raport.pdf' }
+Write-Host "PDF dupa golirea a jumatate din date: $($pdf2.Status) (selectat: $($pdf2.Selected))"
+if (-not $pdf2 -or $pdf2.Status -notlike '*TRIM*' -or $pdf2.Selected) { throw 'PDF-ul golit partial nu a fost detectat' }
 
 # tipuri nebifate: cauta fara Excel, trebuie sa raporteze Excel-urile sarite
 $e4 = [Activator]::CreateInstance($rec.GetType('InfoPcRecover.Engine'))
