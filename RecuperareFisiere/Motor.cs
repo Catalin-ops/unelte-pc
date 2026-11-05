@@ -26,6 +26,7 @@ namespace InfoPcRecover
         public string StatusColor { get; set; }
         public string KindColor { get; set; }
         public string SavedPath { get; set; }
+        public string Status2;
 
         public long RecordNo;
         public List<long[]> Runs;
@@ -215,6 +216,8 @@ namespace InfoPcRecover
         public long Done, Total;
         public DateTime StartTime;
         public int CountPdf, CountWord, CountJpg, CountExcel, CountPpt, Duplicates, Recovered, Failed;
+        public int Trimmed, InRecycleBin;
+        public Dictionary<string, int> SkippedKinds = new Dictionary<string, int>();
         public ConcurrentQueue<FoundFile> NewItems = new ConcurrentQueue<FoundFile>();
 
         RawReader rd;
@@ -592,6 +595,7 @@ namespace InfoPcRecover
             Total = r0.DataSize;
             Dictionary<long, DirEntry> dirs = new Dictionary<long, DirEntry>();
             List<FoundFile> cands = new List<FoundFile>();
+            List<KeyValuePair<long, RecInfo>> recycle = new List<KeyValuePair<long, RecInfo>>();
             Dictionary<FoundFile, long> parentOf = new Dictionary<FoundFile, long>();
             byte[] chunk = new byte[1 << 20];
             byte[] rec = new byte[recSize];
@@ -624,9 +628,26 @@ namespace InfoPcRecover
                             dirs[recNo] = de;
                             continue;
                         }
-                        if (ri.InUse || !ri.HasData || ri.DataSize <= 0) continue;
+                        if (!ri.HasData || ri.DataSize <= 0) continue;
+                        if (ri.InUse)
+                        {
+                            // Cosul de reciclare: $Rxxxxxx.ext = continutul, $Ixxxxxx.ext = numele original
+                            if (ri.Name.Length > 2 && ri.Name[0] == '$' && (ri.Name[1] == 'R' || ri.Name[1] == 'I'))
+                            {
+                                RecInfo cp = ri;
+                                recycle.Add(new KeyValuePair<long, RecInfo>(recNo, cp));
+                            }
+                            continue;
+                        }
                         string kind = KindFromName(ri.Name);
-                        if (!Wanted(kind)) continue;
+                        if (kind == null) continue;
+                        if (!Wanted(kind))
+                        {
+                            int sk;
+                            SkippedKinds.TryGetValue(kind, out sk);
+                            SkippedKinds[kind] = sk + 1;
+                            continue;
+                        }
                         FoundFile f = new FoundFile();
                         f.Name = ri.Name;
                         f.Kind = kind;
@@ -647,6 +668,8 @@ namespace InfoPcRecover
                 mftLeft -= runBytes;
             }
 
+            AddRecycleBin(recycle, dirs, cands, parentOf);
+
             Phase = "Verific starea fisierelor gasite...";
             Done = 0;
             Total = cands.Count;
@@ -655,7 +678,7 @@ namespace InfoPcRecover
             foreach (FoundFile f in cands)
             {
                 if (CancelRequested) break;
-                f.Folder = BuildPath(dirs, parentOf[f]);
+                if (f.Folder == null) f.Folder = BuildPath(dirs, parentOf[f]);
                 if (f.Status == null)
                 {
                     int n = 0;
@@ -663,7 +686,8 @@ namespace InfoPcRecover
                     else if (f.Runs != null && f.Runs.Count > 0 && f.Runs[0][0] >= 0) n = rd.Read(f.Runs[0][0] * cluster, head, 0, 512);
                     bool okSig = SignatureMatches(f.Kind, f.Name, head, n);
                     if (f.Runs == null && f.Resident == null) { f.Status = "Fara date"; f.StatusColor = "#EF4444"; }
-                    else if (okSig) { f.Status = "Bun"; f.StatusColor = "#22C55E"; f.Selected = true; }
+                    else if (okSig) { f.Status = f.Status2 ?? "Bun"; f.StatusColor = "#22C55E"; f.Selected = true; }
+                    else if (n > 0 && IsZero(head, 0, n) && ZeroedOnDisk(f)) { f.Status = "Golit de SSD (TRIM)"; f.StatusColor = "#EF4444"; Interlocked.Increment(ref Trimmed); }
                     else { f.Status = "Probabil suprascris"; f.StatusColor = "#EF4444"; }
                 }
                 Count(f.Kind);
@@ -672,6 +696,83 @@ namespace InfoPcRecover
                 Done = i2;
             }
             Phase = "Gata";
+        }
+
+        // verifica inca 3 zone din fisier: daca toate sunt zero, SSD-ul a golit fisierul (TRIM)
+        bool ZeroedOnDisk(FoundFile f)
+        {
+            if (f.Runs == null) return false;
+            byte[] b = new byte[4096];
+            int checks = 0;
+            foreach (long[] run in f.Runs)
+            {
+                if (run[0] < 0) continue;
+                long[] offs = new long[] { 0, run[1] / 2, Math.Max(0, run[1] - 1) };
+                foreach (long o in offs)
+                {
+                    int n = rd.Read((run[0] + o) * cluster, b, 0, b.Length);
+                    if (n > 0 && !IsZero(b, 0, n)) return false;
+                    if (++checks >= 6) return true;
+                }
+            }
+            return checks > 0;
+        }
+
+        void AddRecycleBin(List<KeyValuePair<long, RecInfo>> recycle, Dictionary<long, DirEntry> dirs, List<FoundFile> cands, Dictionary<FoundFile, long> parentOf)
+        {
+            Dictionary<string, string> original = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach (KeyValuePair<long, RecInfo> kv in recycle)
+            {
+                RecInfo ri = kv.Value;
+                if (ri.Name[1] != 'I' || ri.Resident == null || ri.Resident.Length < 30) continue;
+                try
+                {
+                    byte[] d = ri.Resident;
+                    long ver = BitConverter.ToInt64(d, 0);
+                    string path = null;
+                    if (ver == 2 && d.Length >= 28)
+                    {
+                        int len = BitConverter.ToInt32(d, 24);
+                        if (len > 0 && 28 + len * 2 <= d.Length) path = Encoding.Unicode.GetString(d, 28, len * 2).TrimEnd('\0');
+                    }
+                    else if (ver == 1 && d.Length >= 24 + 520) path = Encoding.Unicode.GetString(d, 24, 520).Split('\0')[0];
+                    if (!string.IsNullOrEmpty(path)) original[ri.Name.Substring(2)] = path;
+                }
+                catch (Exception) { }
+            }
+            foreach (KeyValuePair<long, RecInfo> kv in recycle)
+            {
+                RecInfo ri = kv.Value;
+                if (ri.Name[1] != 'R') continue;
+                string orig;
+                if (!original.TryGetValue(ri.Name.Substring(2), out orig)) continue;
+                string name = Path.GetFileName(orig);
+                string kind = KindFromName(name);
+                if (kind == null) continue;
+                if (!Wanted(kind))
+                {
+                    int sk;
+                    SkippedKinds.TryGetValue(kind, out sk);
+                    SkippedKinds[kind] = sk + 1;
+                    continue;
+                }
+                FoundFile f = new FoundFile();
+                f.Name = name;
+                f.Kind = kind;
+                f.KindColor = KindColorOf(kind);
+                f.Size = ri.DataSize;
+                f.SizeText = FormatSize(ri.DataSize);
+                f.RecordNo = kv.Key;
+                f.Runs = ri.Runs;
+                f.Resident = ri.Resident;
+                f.ClusterSize = cluster;
+                f.Folder = "Coșul de reciclare (era în " + (Path.GetDirectoryName(orig) ?? "") + ")";
+                f.Status2 = "În Coșul de reciclare";
+                if (ri.Unsupported) { f.Status = "Comprimat/criptat"; f.StatusColor = "#F59E0B"; f.Runs = null; f.Resident = null; }
+                cands.Add(f);
+                parentOf[f] = ri.Parent;
+                Interlocked.Increment(ref InRecycleBin);
+            }
         }
 
         static string BuildPath(Dictionary<long, DirEntry> dirs, long parent)
@@ -725,7 +826,7 @@ namespace InfoPcRecover
                         else ReadRuns(f.Runs, f.Size, o, buf, true);
                     }
                     f.SavedPath = target;
-                    if (f.Status == "Bun") f.Status = "Recuperat";
+                    if (f.Status == "Bun" || f.Status == "În Coșul de reciclare") f.Status = "Recuperat";
                     else f.Status = "Recuperat (verifica-l)";
                     f.StatusColor = f.Status == "Recuperat" ? "#22C55E" : "#F59E0B";
                     Interlocked.Increment(ref Recovered);

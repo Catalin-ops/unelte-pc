@@ -306,8 +306,8 @@
                 <ToggleButton x:Name="ChkPdf" Style="{StaticResource Chip}" IsChecked="True" Content="PDF"/>
                 <ToggleButton x:Name="ChkWord" Style="{StaticResource Chip}" IsChecked="True" Content="Word"/>
                 <ToggleButton x:Name="ChkJpg" Style="{StaticResource Chip}" IsChecked="True" Content="Poze JPG"/>
-                <ToggleButton x:Name="ChkExcel" Style="{StaticResource Chip}" Content="Excel"/>
-                <ToggleButton x:Name="ChkPpt" Style="{StaticResource Chip}" Content="PowerPoint"/>
+                <ToggleButton x:Name="ChkExcel" Style="{StaticResource Chip}" IsChecked="True" Content="Excel"/>
+                <ToggleButton x:Name="ChkPpt" Style="{StaticResource Chip}" IsChecked="True" Content="PowerPoint"/>
               </WrapPanel>
             </StackPanel>
           </Border>

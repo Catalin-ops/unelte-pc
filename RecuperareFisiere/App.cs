@@ -499,6 +499,19 @@ namespace InfoPcRecover
             List<string> extra = new List<string>();
             if (e.CancelRequested) extra.Add("Căutarea a fost oprită înainte de final.");
             if (e.BadAreas > 0) extra.Add("Am întâlnit " + e.BadAreas + " zone care nu s-au putut citi (sectoare defecte) — dacă sunt multe, discul are probleme fizice.");
+            if (mode == "quick")
+            {
+                if (e.Trimmed > 0)
+                    extra.Add(e.Trimmed + (e.Trimmed == 1 ? " fișier e marcat" : " fișiere sunt marcate") + " „Golit de SSD (TRIM)”: pe SSD, Windows golește imediat zona unui fișier șters, iar conținutul nu mai poate fi recuperat de niciun program. Numele a rămas doar în tabela de fișiere.");
+                if (e.InRecycleBin > 0)
+                    extra.Add(e.InRecycleBin + (e.InRecycleBin == 1 ? " fișier e" : " fișiere sunt") + " încă în Coșul de reciclare. Le poți recupera de aici sau direct din Coș.");
+                if (e.SkippedKinds.Count > 0)
+                {
+                    List<string> sk = new List<string>();
+                    foreach (KeyValuePair<string, int> kv in e.SkippedKinds) sk.Add(kv.Value + " " + kv.Key);
+                    extra.Add("Am mai găsit fișiere șterse de tipuri pe care nu le-ai bifat: " + string.Join(", ", sk.ToArray()) + ". Bifează-le și caută din nou.");
+                }
+            }
             string ex = extra.Count > 0 ? " " + string.Join(" ", extra.ToArray()) : "";
 
             TextBlock icon = U<TextBlock>("ResIcon");
@@ -512,7 +525,7 @@ namespace InfoPcRecover
                 {
                     icon.Text = "\uE946"; icon.Foreground = B("#FBBF24");
                     U<TextBlock>("ResTitle").Text = "Nu am găsit fișiere șterse cu nume pe această partiție";
-                    U<TextBlock>("ResSub").Text = "Încearcă „Căutarea profundă”: scanează sector cu sector și găsește și fișierele fără nume." + ex;
+                    U<TextBlock>("ResSub").Text = (e.SkippedKinds.Count > 0 ? "" : "Încearcă „Căutarea profundă”: scanează sector cu sector și găsește și fișierele fără nume.") + ex;
                 }
                 else
                 {

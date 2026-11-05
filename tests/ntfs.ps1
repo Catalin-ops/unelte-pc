@@ -85,5 +85,34 @@ foreach ($f in $deep) { Write-Host ("   {0} | {1} | {2}" -f $f.Name, $f.SizeText
 $hashes = @($deep | ForEach-Object { (Get-FileHash -LiteralPath $_.SavedPath -Algorithm MD5).Hash })
 foreach ($k in $orig.Keys) { if ($hashes -notcontains $orig[$k]) { throw "Cautarea profunda nu a recuperat identic $k" } }
 Write-Host 'Test NTFS: toate fisierele gasite si recuperate identic.'
+
+# Cosul de reciclare: stergere simpla (Delete), fisierul e doar mutat in $Recycle.Bin
+Add-Type -AssemblyName Microsoft.VisualBasic
+New-Xlsx 'T:\Documente\Oferta client.xlsx' 'Oferta' 60
+$hOf = (Get-FileHash 'T:\Documente\Oferta client.xlsx' -Algorithm MD5).Hash
+[Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile('T:\Documente\Oferta client.xlsx', 'OnlyErrorDialogs', 'SendToRecycleBin')
+Write-VolumeCache T; Start-Sleep 5
+$e3 = [Activator]::CreateInstance($rec.GetType('InfoPcRecover.Engine'))
+$e3.SourcePath = '\\.\T:'; $e3.DestDir = (Join-Path $out 'cos')
+New-Item -ItemType Directory -Force $e3.DestDir | Out-Null
+$e3.WantPdf = $true; $e3.WantWord = $true; $e3.WantJpg = $true; $e3.WantExcel = $true; $e3.WantPpt = $true
+$e3.StartQuick()
+$f3 = Run $e3 'cos'
+foreach ($f in $f3) { Write-Host ("   {0} | {1} | {2}" -f $f.Name, $f.Folder, $f.Status) }
+$of = $f3 | Where-Object { $_.Name -eq 'Oferta client.xlsx' }
+if (-not $of -or $of.Status -ne 'În Coșul de reciclare') { throw 'Fisierul din Cosul de reciclare nu a fost gasit cu numele original' }
+$a1 = [Array]::CreateInstance($rec.GetType('InfoPcRecover.FoundFile'), 1); $a1[0] = $of
+$e3.StartRecover($a1); $null = Run $e3 'recuperare cos'
+if ((Get-FileHash -LiteralPath $of.SavedPath -Algorithm MD5).Hash -ne $hOf) { throw 'Fisierul din Cos nu s-a recuperat identic' }
+Write-Host "Cos de reciclare: OK ($($e3.InRecycleBin) fisier)"
+
+# tipuri nebifate: cauta fara Excel, trebuie sa raporteze Excel-urile sarite
+$e4 = [Activator]::CreateInstance($rec.GetType('InfoPcRecover.Engine'))
+$e4.SourcePath = '\\.\T:'; $e4.DestDir = $out
+$e4.WantPdf = $true; $e4.WantWord = $true; $e4.WantJpg = $true
+$e4.StartQuick(); $null = Run $e4 'nebifate'
+$sk = 0; [void]$e4.SkippedKinds.TryGetValue('Excel', [ref]$sk)
+Write-Host "Excel sarite cand nu e bifat: $sk"
+if ($sk -lt 2) { throw 'Nu au fost raportate fisierele Excel sarite' }
 "select vdisk file=`"$vhd`"`ndetach vdisk" | Set-Content $dp -Encoding ASCII
 diskpart /s $dp | Out-Null
