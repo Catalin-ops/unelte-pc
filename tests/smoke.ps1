@@ -68,8 +68,8 @@ $recNow = $recsT.GetMethod('Take').Invoke($null, @())
 Write-Host "Recomandari pentru PC-ul de test: $($recNow.Count)"
 foreach ($r in $recNow) { Write-Host ("   [{0}] {1} | {2} | {3}" -f $r.PriorityText, $r.Component, $r.Action, $r.Part) }
 $P = $asm.GetType('InfoPcDisk.Projects'); $PR = $asm.GetType('InfoPcDisk.PcRecord'); $RecT = $asm.GetType('InfoPcDisk.Rec')
-$base = Join-Path $env:RUNNER_TEMP 'proiecte'
-$proj = $P.GetMethod('Create').Invoke($null, @($base, [string]'Scoala Gimnaziala Test'))
+$base = [string](Join-Path $env:RUNNER_TEMP 'proiecte')
+$proj = $P.GetMethod('Create').Invoke($null, [object[]]@($base, [string]'Scoala Gimnaziala Test'))
 function NewRec($pri, $comp, $act, $det, $part) { $r = [Activator]::CreateInstance($RecT); $r.Priority = $pri; $r.Component = $comp; $r.Action = $act; $r.Detail = $det; $r.Part = $part; return $r }
 $labels = @(@('Secretariat PC1', 'Secretariat', 'Maria Ionescu', 0), @('Laborator PC3', 'Sala 12', '', 2), @('Director', 'Direcțiune', 'Director', 1))
 foreach ($lb in $labels) {
@@ -79,7 +79,7 @@ foreach ($lb in $labels) {
     if ($lb[3] -eq 1) { $rec.Recs.Add((NewRec 2 'Disc' 'Înlocuire HDD de sistem cu SSD' 'Windows rulează de pe HDD.' 'SSD 512 GB SATA 2.5"')) }
     $P.GetMethod('Save').Invoke($null, @($proj, $rec))
 }
-$all = $P.GetMethod('List').Invoke($null, @($base))
+$all = $P.GetMethod('List').Invoke($null, [object[]]@($base))
 $pj = $all[0]
 Write-Host "Proiect: $($pj.Name) - $($pj.Sub)"
 if ($pj.Pcs.Count -ne 3) { throw "Proiectul ar trebui sa aiba 3 calculatoare, are $($pj.Pcs.Count)" }
