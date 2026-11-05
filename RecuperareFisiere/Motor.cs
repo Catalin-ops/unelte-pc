@@ -757,7 +757,8 @@ namespace InfoPcRecover
             else if (compressed && ext != "jpg" && ext != "jpeg" && ext != "jpe" && ext != "jfif")
             {
                 bool eocd = false;
-                for (int k = tl - 22; k >= Math.Max(0, tl - 65557) && !eocd; k--)
+                // sfarsitul arhivei ZIP se termina chiar cu zerouri (lungimea comentariului), deci cautam in toata coada
+                for (int k = tail.Length - 22; k >= 0 && !eocd; k--)
                     if (tail[k] == 0x50 && tail[k + 1] == 0x4B && tail[k + 2] == 5 && tail[k + 3] == 6) eocd = true;
                 if (!eocd) return "Incomplet (lipsește finalul)";
             }
