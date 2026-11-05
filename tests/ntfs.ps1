@@ -129,10 +129,10 @@ diskpart /s $dp | Out-Host
 for ($w = 0; $w -lt 20 -and (Get-DiskImage -ImagePath $vhd).Attached; $w++) { Start-Sleep 1 }
 if ((Get-DiskImage -ImagePath $vhd).Attached) { throw 'Discul virtual nu s-a desprins' }
 $half = [long]($run[1] / 2)
-$fsv = [IO.File]::Open($vhd, 'Open', 'ReadWrite')
+$fsv = New-Object IO.FileStream($vhd, [IO.FileMode]::Open, [IO.FileAccess]::ReadWrite, [IO.FileShare]::None, 4096, [IO.FileOptions]::WriteThrough)
 $fsv.Position = $partOff + ($run[0] + $half) * $cl
 $z = New-Object byte[] (($run[1] - $half) * $cl)
-$fsv.Write($z, 0, $z.Length); $fsv.Flush(); $fsv.Close()
+$fsv.Write($z, 0, $z.Length); $fsv.Flush($true); $fsv.Close()
 Write-Host "Golire: LCN=$($run[0]) clustere=$($run[1]) cluster=$cl partitie@$partOff -> octeti $($z.Length) de la $($partOff + ($run[0] + $half) * $cl); runs=$($pdf.Runs.Count) size=$($pdf.Size)"
 $chk = [IO.File]::OpenRead($vhd); $chk.Position = $partOff + $run[0] * $cl; $hb = New-Object byte[] 16; [void]$chk.Read($hb, 0, 16); $chk.Close()
 Write-Host ("Inceput fisier in VHD: " + [Text.Encoding]::ASCII.GetString($hb))
