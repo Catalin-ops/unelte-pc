@@ -122,9 +122,12 @@ $pdf = $f5 | Where-Object { $_.Name -eq 'Raport.pdf' }
 if (-not $pdf -or $pdf.Status -ne 'Bun') { throw "PDF-ul intact ar trebui sa fie Bun, e: $($pdf.Status)" }
 $run = $pdf.Runs[0]; $cl = $pdf.ClusterSize
 $partOff = (Get-Partition -DriveLetter T).Offset
-$e5.Close()
+foreach ($x in @($e, $e2, $e3, $e5)) { try { $x.Close() } catch {} }
+[GC]::Collect(); [GC]::WaitForPendingFinalizers()
 "select vdisk file=`"$vhd`"`ndetach vdisk" | Set-Content $dp -Encoding ASCII
-diskpart /s $dp | Out-Null
+diskpart /s $dp | Out-Host
+for ($w = 0; $w -lt 20 -and (Get-DiskImage -ImagePath $vhd).Attached; $w++) { Start-Sleep 1 }
+if ((Get-DiskImage -ImagePath $vhd).Attached) { throw 'Discul virtual nu s-a desprins' }
 $half = [long]($run[1] / 2)
 $fsv = [IO.File]::Open($vhd, 'Open', 'ReadWrite')
 $fsv.Position = $partOff + ($run[0] + $half) * $cl
@@ -134,8 +137,8 @@ Write-Host "Golire: LCN=$($run[0]) clustere=$($run[1]) cluster=$cl partitie@$par
 $chk = [IO.File]::OpenRead($vhd); $chk.Position = $partOff + $run[0] * $cl; $hb = New-Object byte[] 16; [void]$chk.Read($hb, 0, 16); $chk.Close()
 Write-Host ("Inceput fisier in VHD: " + [Text.Encoding]::ASCII.GetString($hb))
 "select vdisk file=`"$vhd`"`nattach vdisk`nselect partition 1`nassign letter=T" | Set-Content $dp -Encoding ASCII
-diskpart /s $dp | Out-Null
-Start-Sleep 4
+diskpart /s $dp | Out-Host
+for ($w = 0; $w -lt 20 -and -not (Test-Path 'T:\'); $w++) { Start-Sleep 1 }
 $e6 = [Activator]::CreateInstance($rec.GetType('InfoPcRecover.Engine'))
 $e6.SourcePath = '\\.\T:'; $e6.DestDir = $out; $e6.WantPdf = $true
 $e6.StartQuick(); $f6 = Run $e6 'pdf golit'
