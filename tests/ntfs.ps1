@@ -129,7 +129,10 @@ $half = [long]($run[1] / 2)
 $fsv = [IO.File]::Open($vhd, 'Open', 'ReadWrite')
 $fsv.Position = $partOff + ($run[0] + $half) * $cl
 $z = New-Object byte[] (($run[1] - $half) * $cl)
-$fsv.Write($z, 0, $z.Length); $fsv.Close()
+$fsv.Write($z, 0, $z.Length); $fsv.Flush(); $fsv.Close()
+Write-Host "Golire: LCN=$($run[0]) clustere=$($run[1]) cluster=$cl partitie@$partOff -> octeti $($z.Length) de la $($partOff + ($run[0] + $half) * $cl); runs=$($pdf.Runs.Count) size=$($pdf.Size)"
+$chk = [IO.File]::OpenRead($vhd); $chk.Position = $partOff + $run[0] * $cl; $hb = New-Object byte[] 16; [void]$chk.Read($hb, 0, 16); $chk.Close()
+Write-Host ("Inceput fisier in VHD: " + [Text.Encoding]::ASCII.GetString($hb))
 "select vdisk file=`"$vhd`"`nattach vdisk`nselect partition 1`nassign letter=T" | Set-Content $dp -Encoding ASCII
 diskpart /s $dp | Out-Null
 Start-Sleep 4
