@@ -22,9 +22,9 @@ using System.Windows.Media.Imaging;
 [assembly: AssemblyCompany("Info PC Electric S.R.L.")]
 [assembly: AssemblyProduct("Sănătate PC")]
 [assembly: AssemblyCopyright("© 2026 Info PC Electric")]
-[assembly: AssemblyVersion("1.1.0.0")]
-[assembly: AssemblyInformationalVersion("1.1.0")]
-[assembly: AssemblyFileVersion("1.1.0.0")]
+[assembly: AssemblyVersion("1.2.0.0")]
+[assembly: AssemblyInformationalVersion("1.2.0")]
+[assembly: AssemblyFileVersion("1.2.0.0")]
 
 namespace InfoPcDisk
 {

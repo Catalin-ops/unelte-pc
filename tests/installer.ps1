@@ -1,7 +1,7 @@
 # Construieste installer-ul Sanatate PC, il testeaza (instalare + dezinstalare silentioasa) si face capturile pentru Store.
 $ErrorActionPreference = 'Stop'
 Set-Location (Split-Path $PSScriptRoot)
-$ver = '1.1.0'
+$ver = '1.2.0'
 
 # Inno Setup + traducerea romaneasca (neoficiala, din sursele Inno Setup)
 if (-not (Test-Path 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe')) { choco install innosetup -y --no-progress | Out-Null }
@@ -36,7 +36,7 @@ Write-Host 'Dezinstalare: OK'
 New-Item -ItemType Directory -Force 'shots\store' | Out-Null
 $valid = ((Get-Content 'tests\licente_test.txt') | Where-Object { $_ -like 'screenshot=*' }).Substring(11)
 Set-Content -Path 'dist\licenta.spc' -Value $valid -Encoding ASCII
-foreach ($pg in 'sumar', 'live', 'ram', 'gpu', 'discuri', 'stabilitate') {
+foreach ($pg in 'sumar', 'todo', 'live', 'ram', 'gpu', 'discuri', 'stabilitate') {
     $out = Join-Path (Get-Location).Path "shots\store\$pg.png"
     $q = Start-Process -FilePath (Resolve-Path 'dist\SanatatePC.exe') -ArgumentList "--pagina=$pg", "--captura=$out", '--marime=1920x1080' -PassThru
     if (-not $q.WaitForExit(90000)) { $q.Kill() }

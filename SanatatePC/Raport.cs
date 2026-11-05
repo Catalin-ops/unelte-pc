@@ -122,6 +122,7 @@ namespace InfoPcDisk
             d.FontSize = 11.5;
             d.Foreground = B("#0F172A");
             d.Background = Brushes.White;
+            d.TextAlignment = TextAlignment.Left;
 
             // ---- antet: logo + firma
             Table head = new Table();
@@ -385,6 +386,7 @@ namespace InfoPcDisk
             d.FontSize = 11.5;
             d.Foreground = B("#0F172A");
             d.Background = Brushes.White;
+            d.TextAlignment = TextAlignment.Left;
             return d;
         }
 
