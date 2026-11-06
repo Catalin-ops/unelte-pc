@@ -145,6 +145,13 @@ namespace InfoPcDisk
         // cauta licenta: intai langa .exe (stick), apoi in AppData
         public static License Load()
         {
+            try
+            {
+                string vis = Path.Combine(ExeDir, FileName);
+                if (File.Exists(vis) && (File.GetAttributes(vis) & FileAttributes.Hidden) == 0 && !IsInstalled)
+                    File.SetAttributes(vis, FileAttributes.Hidden | FileAttributes.System | FileAttributes.ReadOnly);
+            }
+            catch (Exception) { }
             string[] places = new string[] { Path.Combine(ExeDir, FileName), Path.Combine(AppDataDir, FileName) };
             License best = null;
             foreach (string f in places)
@@ -163,17 +170,25 @@ namespace InfoPcDisk
         }
 
         // salveaza licenta; intoarce calea sau arunca exceptie
+        // fisierul de licenta e ascuns (Ascuns + Sistem), ca sa nu fie vazut sau sters din greseala
+        static void WriteHidden(string f, string text)
+        {
+            if (File.Exists(f)) File.SetAttributes(f, FileAttributes.Normal);
+            File.WriteAllText(f, text + Environment.NewLine, new UTF8Encoding(false));
+            try { File.SetAttributes(f, FileAttributes.Hidden | FileAttributes.System | FileAttributes.ReadOnly); } catch (Exception) { }
+        }
+
         // salveaza licenta pe acest PC (AppData) si, daca se cere si se poate, langa aplicatie (stick)
         public static string Save(License l, bool nextToExe)
         {
             Directory.CreateDirectory(AppDataDir);
             string f = Path.Combine(AppDataDir, FileName);
-            File.WriteAllText(f, l.Raw + Environment.NewLine, new UTF8Encoding(false));
+            WriteHidden(f, l.Raw);
             l.SourcePath = f;
             if (nextToExe)
             {
                 string g = Path.Combine(ExeDir, FileName);
-                File.WriteAllText(g, l.Raw + Environment.NewLine, new UTF8Encoding(false));
+                WriteHidden(g, l.Raw);
                 l.SourcePath = g;
             }
             return l.SourcePath;
@@ -187,7 +202,7 @@ namespace InfoPcDisk
                 if (l == null || !l.IsPro) return false;
                 string g = Path.Combine(ExeDir, FileName);
                 if (File.Exists(g) || !CanWriteExeDir) return false;
-                File.WriteAllText(g, l.Raw + Environment.NewLine, new UTF8Encoding(false));
+                WriteHidden(g, l.Raw);
                 return true;
             }
             catch (Exception) { return false; }
@@ -196,7 +211,7 @@ namespace InfoPcDisk
         public static void Remove()
         {
             foreach (string f in new string[] { Path.Combine(ExeDir, FileName), Path.Combine(AppDataDir, FileName) })
-                try { if (File.Exists(f)) File.Delete(f); } catch (Exception) { }
+                try { if (File.Exists(f)) { File.SetAttributes(f, FileAttributes.Normal); File.Delete(f); } } catch (Exception) { }
         }
 
         // ------------------------------------------------------------ generare (folosit de GeneratorLicente)

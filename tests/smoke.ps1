@@ -50,12 +50,18 @@ if (-not $v.Valid -or $x.IsPro -or -not $x.Valid -or -not $x.Expired -or $t.Vali
 # licenta pe stick: salvata doar pe PC, la pornire se copiaza langa aplicatie
 if ($v.IsPro) {
     $exeLic = Join-Path (Split-Path (Resolve-Path 'dist\SanatatePC.exe')) 'licenta.spc'
-    if (Test-Path $exeLic) { Remove-Item $exeLic }
+    if (Test-Path $exeLic) { Remove-Item $exeLic -Force }
     [void]$L.GetMethod('Save').Invoke($null, [object[]]@($v, $false))
     $copied = $L.GetMethod('CopyToExeDirIfMissing').Invoke($null, [object[]]@($v))
     Write-Host "Licenta copiata langa aplicatie: $copied, exista: $(Test-Path $exeLic)"
     if (-not $copied -or -not (Test-Path $exeLic)) { throw 'Licenta nu a fost copiata langa aplicatie' }
-    Remove-Item $exeLic
+    $attr = (Get-Item $exeLic -Force).Attributes
+    Write-Host "Atribute licenta: $attr"
+    if (($attr -band [IO.FileAttributes]::Hidden) -eq 0) { throw 'Licenta de pe stick nu e ascunsa' }
+    $re = $L.GetMethod('Load').Invoke($null, @())
+    if (-not $re.IsPro) { throw 'Licenta ascunsa nu mai poate fi citita' }
+    $L.GetMethod('Remove').Invoke($null, @()) | Out-Null
+    if (Test-Path $exeLic) { throw 'Licenta ascunsa nu s-a putut sterge din aplicatie' }
     $L.GetMethod('Remove').Invoke($null, @()) | Out-Null
 } else { Write-Host 'Licenta de test a expirat: sar testul de copiere pe stick' }
 

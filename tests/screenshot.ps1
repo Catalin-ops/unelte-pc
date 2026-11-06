@@ -27,6 +27,6 @@ Shot 'SanatatePC' 'sanatate_pro.png' 25
 Shot 'SanatatePC' 'sanatate_pro_ram.png' 20 '--pagina=ram'
 Shot 'SanatatePC' 'sanatate_pro_live.png' 30 '--pagina=live'
 Shot 'SanatatePC' 'sanatate_pro_disc.png' 20 '--pagina=discuri'
-Remove-Item 'dist\licenta.spc'
+Remove-Item 'dist\licenta.spc' -Force
 Shot 'RecuperareFisiere' 'recuperare.png' 10
 Shot 'GeneratorLicente' 'generator.png' 6

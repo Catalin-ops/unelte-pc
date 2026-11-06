@@ -50,4 +50,4 @@ foreach ($pg in 'sumar', 'todo', 'live', 'ram', 'gpu', 'discuri', 'stabilitate')
     if (-not $q.WaitForExit(90000)) { $q.Kill() }
     if (Test-Path $out) { Write-Host "captura store $pg" } else { Write-Host "captura store $pg LIPSA" }
 }
-Remove-Item 'dist\licenta.spc'
+Remove-Item 'dist\licenta.spc' -Force
