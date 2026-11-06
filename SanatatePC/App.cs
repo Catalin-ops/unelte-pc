@@ -461,6 +461,7 @@ namespace InfoPcDisk
                     recs = Recs.Take();
                     Section todo = Recs.BuildSection(recs);
                     secs.Insert(0, todo);
+                    if (!pro) foreach (Section s in secs) FreeSummary(s);
                     secs.Insert(0, BuildSummary(secs, sys, pro));
                     Section lv = new Section("live", "Monitorizare live", "");
                     lv.Summary = "Încărcare și temperaturi în timp real";
@@ -495,6 +496,7 @@ namespace InfoPcDisk
                     currentRecs = recs;
                     nav.ItemsSource = null;
                     nav.ItemsSource = sections;
+                    foreach (DiskReport r in disks) r.ListTemp = Pro ? r.TempText : "";
                     diskList.ItemsSource = disks;
                     if (disks.Count > 0) diskList.SelectedIndex = 0;
                     FillSummary();
@@ -512,6 +514,18 @@ namespace InfoPcDisk
             t.IsBackground = true;
             t.SetApartmentState(ApartmentState.STA);
             t.Start();
+        }
+
+        // in Free, pe pagina principala apare doar modelul / verdictul, fara valorile din Pro
+        static void FreeSummary(Section s)
+        {
+            string first = (s.Summary ?? "").Split(new string[] { " · " }, StringSplitOptions.None)[0];
+            switch (s.Key)
+            {
+                case "cpu": case "ram": s.Summary = first; break;
+                case "baterie": s.Summary = s.Cards.Count > 0 ? s.Cards[0].Title : "Baterie"; break;
+                case "stabilitate": s.Summary = s.Level >= 1 ? "Au apărut probleme — detaliile sunt în Pro" : "Fără probleme în ultimele 30 de zile"; break;
+            }
         }
 
         Section BuildSummary(List<Section> secs, Section sys, bool pro)

@@ -32,6 +32,14 @@ Start-Sleep -Seconds 3
 if (Test-Path $app) { throw 'Dezinstalarea nu a sters aplicatia' }
 Write-Host 'Dezinstalare: OK'
 
+# capturi in modul Free (fara licenta), ca sa verificam ce se vede gratuit
+New-Item -ItemType Directory -Force 'shots\free' | Out-Null
+foreach ($pg in 'sumar', 'discuri', 'stabilitate', 'todo', 'ram') {
+    $out = Join-Path (Get-Location).Path "shots\free\$pg.png"
+    $q = Start-Process -FilePath (Resolve-Path 'dist\SanatatePC.exe') -ArgumentList "--pagina=$pg", "--captura=$out", '--marime=1600x1000' -PassThru
+    if (-not $q.WaitForExit(90000)) { $q.Kill() }
+}
+
 # capturi pentru Microsoft Store, 1920x1080, versiunea Pro
 New-Item -ItemType Directory -Force 'shots\store' | Out-Null
 $valid = ((Get-Content 'tests\licente_test.txt') | Where-Object { $_ -like 'screenshot=*' }).Substring(11)

@@ -46,6 +46,7 @@ namespace InfoPcDisk
 
         public string LifeText { get; set; }
         public string TempText { get; set; }
+        public string ListTemp { get; set; }
         public string TempColor { get; set; }
         public string TempMaxText { get; set; }
         public string HoursText { get; set; }

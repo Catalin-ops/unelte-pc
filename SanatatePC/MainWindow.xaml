@@ -426,7 +426,7 @@
                     <Border CornerRadius="7" Padding="9,3" Background="{Binding HealthBg}" HorizontalAlignment="Right">
                       <TextBlock Text="{Binding HealthText}" Foreground="{Binding HealthColor}" FontSize="11.5" FontWeight="SemiBold"/>
                     </Border>
-                    <TextBlock Text="{Binding TempText}" Foreground="{Binding TempColor}" FontSize="12" HorizontalAlignment="Right" Margin="0,4,0,0"/>
+                    <TextBlock Text="{Binding ListTemp}" Foreground="{Binding TempColor}" FontSize="12" HorizontalAlignment="Right" Margin="0,4,0,0"/>
                   </StackPanel>
                 </Grid>
               </DataTemplate>

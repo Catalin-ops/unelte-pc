@@ -48,6 +48,7 @@ jobs:
           New-Item -ItemType Directory -Force out | Out-Null
           Copy-Item dist\*.exe out\
           if (Test-Path shots\store) { New-Item -ItemType Directory -Force out\store | Out-Null; Copy-Item shots\store\* out\store\ }
+          if (Test-Path shots\free) { New-Item -ItemType Directory -Force out\free | Out-Null; Copy-Item shots\free\* out\free\ }
           if (Test-Path shots) { Copy-Item shots\*.* out\ }
           Set-Location out
           git init -q -b build
