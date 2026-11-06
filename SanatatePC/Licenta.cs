@@ -51,6 +51,36 @@ namespace InfoPcDisk
             get { return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "InfoPC", "SanatatePC"); }
         }
 
+        // aplicatia e instalata (Program Files / Microsoft Store), nu portabila?
+        public static bool IsInstalled
+        {
+            get
+            {
+                string d = ExeDir ?? "";
+                string pf = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+                string pf86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+                return d.IndexOf(@"\WindowsApps\", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    (pf.Length > 0 && d.StartsWith(pf, StringComparison.OrdinalIgnoreCase)) ||
+                    (pf86.Length > 0 && d.StartsWith(pf86, StringComparison.OrdinalIgnoreCase));
+            }
+        }
+
+        public static bool CanWriteExeDir
+        {
+            get
+            {
+                if (IsInstalled) return false;
+                try
+                {
+                    string t = Path.Combine(ExeDir, ".licenta_test");
+                    File.WriteAllText(t, "x");
+                    File.Delete(t);
+                    return true;
+                }
+                catch (Exception) { return false; }
+            }
+        }
+
         public static bool ExeOnRemovable
         {
             get
@@ -133,14 +163,34 @@ namespace InfoPcDisk
         }
 
         // salveaza licenta; intoarce calea sau arunca exceptie
+        // salveaza licenta pe acest PC (AppData) si, daca se cere si se poate, langa aplicatie (stick)
         public static string Save(License l, bool nextToExe)
         {
-            string dir = nextToExe ? ExeDir : AppDataDir;
-            Directory.CreateDirectory(dir);
-            string f = Path.Combine(dir, FileName);
+            Directory.CreateDirectory(AppDataDir);
+            string f = Path.Combine(AppDataDir, FileName);
             File.WriteAllText(f, l.Raw + Environment.NewLine, new UTF8Encoding(false));
             l.SourcePath = f;
-            return f;
+            if (nextToExe)
+            {
+                string g = Path.Combine(ExeDir, FileName);
+                File.WriteAllText(g, l.Raw + Environment.NewLine, new UTF8Encoding(false));
+                l.SourcePath = g;
+            }
+            return l.SourcePath;
+        }
+
+        // la pornire: daca licenta valida e doar pe PC, o copiem si langa aplicatia portabila (stick)
+        public static bool CopyToExeDirIfMissing(License l)
+        {
+            try
+            {
+                if (l == null || !l.IsPro) return false;
+                string g = Path.Combine(ExeDir, FileName);
+                if (File.Exists(g) || !CanWriteExeDir) return false;
+                File.WriteAllText(g, l.Raw + Environment.NewLine, new UTF8Encoding(false));
+                return true;
+            }
+            catch (Exception) { return false; }
         }
 
         public static void Remove()

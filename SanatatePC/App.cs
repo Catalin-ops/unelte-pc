@@ -116,6 +116,7 @@ namespace InfoPcDisk
             live = new LiveMonitor(F<UniformGrid>("LiveGrid"));
 
             lic = Licensing.Load();
+            Licensing.CopyToExeDirIfMissing(lic);
             settings = Settings.Load(lic);
             UpdateLicenseUi();
 
@@ -290,7 +291,12 @@ namespace InfoPcDisk
             CheckBox stick = (CheckBox)d.FindName("OnStick");
             TextBlock err = (TextBlock)d.FindName("ErrText");
             Button remove = (Button)d.FindName("RemoveBtn");
-            stick.IsChecked = Licensing.ExeOnRemovable || (lic != null && lic.SourcePath.StartsWith(Licensing.ExeDir, StringComparison.OrdinalIgnoreCase));
+            bool canStick = Licensing.CanWriteExeDir;
+            stick.IsChecked = canStick;
+            stick.IsEnabled = canStick;
+            if (!canStick) ((TextBlock)d.FindName("StickHint")).Text = Licensing.IsInstalled
+                ? "Aplicația e instalată, așa că licența rămâne pe acest calculator. Pentru stick, copiază SanatatePC.exe pe stick și activează de acolo."
+                : "Nu pot scrie în folderul aplicației; licența rămâne pe acest calculator.";
             if (lic != null && lic.Valid)
             {
                 ((FrameworkElement)d.FindName("CurBox")).Visibility = Visibility.Visible;

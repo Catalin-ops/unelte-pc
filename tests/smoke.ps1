@@ -47,6 +47,18 @@ Write-Host "Licenta expirata: Valid=$($x.Valid) Expired=$($x.Expired) IsPro=$($x
 Write-Host "Licenta modificata: Valid=$($t.Valid) Eroare=$($t.Error)"
 if (-not $v.Valid -or $x.IsPro -or -not $x.Valid -or -not $x.Expired -or $t.Valid) { throw 'Testul de licenta a esuat' }
 
+# licenta pe stick: salvata doar pe PC, la pornire se copiaza langa aplicatie
+if ($v.IsPro) {
+    $exeLic = Join-Path (Split-Path (Resolve-Path 'dist\SanatatePC.exe')) 'licenta.spc'
+    if (Test-Path $exeLic) { Remove-Item $exeLic }
+    [void]$L.GetMethod('Save').Invoke($null, [object[]]@($v, $false))
+    $copied = $L.GetMethod('CopyToExeDirIfMissing').Invoke($null, [object[]]@($v))
+    Write-Host "Licenta copiata langa aplicatie: $copied, exista: $(Test-Path $exeLic)"
+    if (-not $copied -or -not (Test-Path $exeLic)) { throw 'Licenta nu a fost copiata langa aplicatie' }
+    Remove-Item $exeLic
+    $L.GetMethod('Remove').Invoke($null, @()) | Out-Null
+} else { Write-Host 'Licenta de test a expirat: sar testul de copiere pe stick' }
+
 # raport PDF din sectiunile citite mai sus
 New-Item -ItemType Directory -Force shots | Out-Null
 $R = $asm.GetType('InfoPcDisk.Report')
