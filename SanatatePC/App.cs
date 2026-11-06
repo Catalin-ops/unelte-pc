@@ -458,6 +458,7 @@ namespace InfoPcDisk
                     secs.Add(mon);
                     if (bat != null) secs.Add(bat);
                     secs.Add(net); secs.Add(sys); secs.Add(stab);
+                    EnsureRecs(secs);
                     recs = Recs.Take();
                     Section todo = Recs.BuildSection(recs);
                     secs.Insert(0, todo);
@@ -516,6 +517,34 @@ namespace InfoPcDisk
             t.Start();
         }
 
+        // orice componenta cu Atentie / Problema are cel putin o lucrare in "Ce trebuie facut"
+        static void EnsureRecs(List<Section> secs)
+        {
+            List<Rec> have = Recs.Take();
+            Dictionary<string, string[]> comp = new Dictionary<string, string[]>();
+            comp["cpu"] = new string[] { "Procesor", "Hardware" };
+            comp["placa"] = new string[] { "Placă de bază" };
+            comp["ram"] = new string[] { "Memorie RAM" };
+            comp["gpu"] = new string[] { "Placă video" };
+            comp["discuri"] = new string[] { "Disc" };
+            comp["monitor"] = new string[] { "Monitor" };
+            comp["baterie"] = new string[] { "Baterie" };
+            comp["retea"] = new string[] { "Rețea" };
+            comp["sistem"] = new string[] { "Windows" };
+            comp["stabilitate"] = new string[] { "Stabilitate", "Alimentare", "Hardware", "Disc" };
+            foreach (Section s in secs)
+            {
+                string[] names;
+                if (s.Level < 1 || !comp.TryGetValue(s.Key, out names)) continue;
+                bool found = false;
+                foreach (Rec r in have) if (Array.IndexOf(names, r.Component) >= 0) found = true;
+                if (found) continue;
+                string note = "";
+                foreach (Card c in s.Cards) if (c.Level >= 1 && c.NoteList.Count > 0) { note = c.NoteList[0]; break; }
+                Recs.Add(s.Level == 2 ? 1 : 2, names[0], "Verificare " + s.Name.ToLower(), note, null);
+            }
+        }
+
         // in Free, pe pagina principala apare doar modelul / verdictul, fara valorile din Pro
         static void FreeSummary(Section s)
         {
@@ -556,6 +585,10 @@ namespace InfoPcDisk
                 head.Note(s.Name + (s.Level == 2 ? " — problemă" : " — de urmărit") + (first != null ? ": " + first : ""));
             }
             if (head.NoteList.Count == 0) head.Note("Nicio componentă nu are probleme detectate. Ține totuși o copie de rezervă a datelor importante.");
+            if (!Collect.IsAdmin)
+                head.Note(Collect.IsPackaged
+                    ? "Versiunea din Microsoft Store rulează fără drepturi de administrator: la HDD-uri și SSD-uri SATA vezi starea dată de Windows, fără tabelul SMART complet. Versiunea portabilă de pe infopc.ro citește tot."
+                    : "Aplicația nu rulează ca administrator, așa că unele date (SMART complet, TPM) nu pot fi citite. Pornește-o cu clic dreapta → Executare ca administrator.");
             foreach (Section s in secs)
             {
                 Card c = sum.AddCard(s.Name, s.Summary);

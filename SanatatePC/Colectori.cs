@@ -32,6 +32,10 @@ namespace InfoPcDisk
 
     public static class Collect
     {
+        public static readonly bool IsAdmin = new System.Security.Principal.WindowsPrincipal(System.Security.Principal.WindowsIdentity.GetCurrent())
+            .IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator);
+        // rulez din pachetul Microsoft Store (folderul WindowsApps)?
+        public static readonly bool IsPackaged = (System.Reflection.Assembly.GetExecutingAssembly().Location ?? "").IndexOf(@"\WindowsApps\", StringComparison.OrdinalIgnoreCase) >= 0;
         static readonly CultureInfo RO = new CultureInfo("ro-RO");
 
         // ------------------------------------------------------------ utilitare WMI
@@ -277,7 +281,7 @@ namespace InfoPcDisk
             catch (Exception) { }
 
             // TPM + Secure Boot (cerinte Windows 11)
-            string tpm = "Lipsă sau dezactivat";
+            string tpm = IsAdmin ? "Lipsă sau dezactivat" : "Necunoscut (necesită drepturi de administrator)";
             foreach (ManagementObject t in Wmi(@"root\CIMV2\Security\MicrosoftTpm", "SELECT SpecVersion, IsEnabled_InitialValue FROM Win32_Tpm"))
             {
                 string spec = S(t, "SpecVersion");
@@ -302,7 +306,8 @@ namespace InfoPcDisk
             sec2.Add("Cip de securitate", tpm, tpm.StartsWith("TPM 2") && tpm.EndsWith("activ") ? "#4ADE80" : "#FBBF24");
             sec2.Add("Secure Boot", sb, sb.StartsWith("Activ") ? "#4ADE80" : "#FBBF24");
             sec2.SetLevel(-1, "Info");
-            if (!tpm.StartsWith("TPM 2")) sec2.Note("Fără TPM 2.0 activ, Windows 11 nu se poate instala oficial. Se activează de obicei din BIOS (fTPM / PTT).");
+            if (!IsAdmin) sec2.Note(IsPackaged ? "Versiunea din Microsoft Store nu are drepturi de administrator, așa că nu poate citi cipul TPM. Versiunea portabilă de pe infopc.ro îl citește." : "Pornește aplicația ca administrator ca să poată citi cipul TPM.");
+            else if (!tpm.StartsWith("TPM 2")) sec2.Note("Fără TPM 2.0 activ, Windows 11 nu se poate instala oficial. Se activează de obicei din BIOS (fTPM / PTT).");
             bool tpmOk = tpm.StartsWith("TPM 2") && tpm.EndsWith("activ");
             if (Regex.IsMatch(winCaption, @"Windows (XP|Vista|7|8)\b"))
             {
@@ -312,7 +317,8 @@ namespace InfoPcDisk
             else if (winCaption.IndexOf("Windows 10", StringComparison.OrdinalIgnoreCase) >= 0)
             {
                 win.Raise(1, "Windows 10 nu mai primește actualizări gratuite din 14 octombrie 2025.");
-                if (tpmOk) Recs.Add(2, "Windows", "Upgrade gratuit la Windows 11", "Windows 10 nu mai primește actualizări din 14.10.2025. TPM 2.0 e activ; verifică și compatibilitatea procesorului.", null);
+                if (!IsAdmin) Recs.Add(2, "Windows", "Upgrade la Windows 11 (dacă PC-ul e compatibil)", "Windows 10 nu mai primește actualizări din 14.10.2025. Verifică compatibilitatea cu aplicația Microsoft PC Health Check.", null);
+                else if (tpmOk) Recs.Add(2, "Windows", "Upgrade gratuit la Windows 11", "Windows 10 nu mai primește actualizări din 14.10.2025. TPM 2.0 e activ; verifică și compatibilitatea procesorului.", null);
                 else Recs.Add(2, "Windows", "Activare TPM 2.0 din BIOS, apoi upgrade la Windows 11", "Windows 10 nu mai primește actualizări din 14.10.2025, iar TPM 2.0 nu e activ (" + tpm + "). Dacă placa nu are TPM 2.0, calculatorul trebuie înlocuit sau trecut pe ESU.", null);
             }
 
@@ -1022,6 +1028,11 @@ namespace InfoPcDisk
             else if (st.PowerLoss > 0) c.Note(st.PowerLoss + (st.PowerLoss == 1 ? " oprire bruscă" : " opriri bruște") + " (pană de curent, oprire din buton sau blocare).");
             if (st.WheaFatal > 0) c.Raise(2, "Erori hardware grave raportate de procesor sau de placa de bază. Cauze frecvente: overclock, sursă slabă, procesor sau RAM.");
             else if (st.WheaCorrected > 20) c.Raise(1, "Multe erori hardware corectate. De obicei vin de la PCIe (placa video, SSD NVMe) sau de la un overclock instabil.");
+            if (st.Bsod > 0 && st.Bsod < 3) Recs.Add(2, "Stabilitate", "Verificare cauză ecran albastru", st.Bsod + (st.Bsod == 1 ? " ecran albastru" : " ecrane albastre") + " în 30 de zile" + (st.BsodLines.Count > 0 ? "; " + st.BsodLines[0] : "") + ".", null);
+            if (st.WheaFatal == 0 && st.WheaCorrected > 20) Recs.Add(2, "Hardware", "Verificare erori hardware corectate (WHEA)", st.WheaCorrected + " erori în 30 de zile; de obicei PCIe (placa video, SSD NVMe) sau overclock.", null);
+            if (st.DiskBadBlock > 0) Recs.Add(1, "Disc", "Backup și verificare disc cu blocuri defecte", "Windows a raportat blocuri defecte de " + st.DiskBadBlock + " ori în 30 de zile.", null);
+            else if (st.DiskRetry > 5) Recs.Add(2, "Disc", "Verificare cablu SATA și stare disc", st.DiskRetry + " reîncercări de citire în 30 de zile.", "Cablu SATA");
+            if (st.NtfsCorrupt > 0) Recs.Add(2, "Windows", "Verificare sistem de fișiere (chkdsk)", "Corupții raportate de " + st.NtfsCorrupt + " ori în 30 de zile.", null);
             if (st.DiskBadBlock > 0) c.Raise(2, "Windows a găsit blocuri defecte pe un disc (" + st.DiskBadBlock + " ori). Vezi secțiunea Discuri și fă backup.");
             else if (st.DiskRetry > 5) c.Raise(1, "Multe reîncercări de citire pe disc. Pot veni de la un disc obosit sau de la cablul SATA.");
             if (st.NtfsCorrupt > 0) c.Raise(1, "Sistemul de fișiere a raportat corupții. Rulează „chkdsk /scan” pe partiția afectată.");

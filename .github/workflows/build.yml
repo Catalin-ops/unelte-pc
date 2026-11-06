@@ -24,6 +24,9 @@ jobs:
       - name: Installer + test instalare + capturi Store
         shell: powershell
         run: ./tests/installer.ps1
+      - name: Pachete MSIX pentru Microsoft Store + test instalare
+        shell: powershell
+        run: ./tests/msix.ps1
       - name: Capturi de ecran
         shell: powershell
         continue-on-error: true
@@ -48,6 +51,7 @@ jobs:
           New-Item -ItemType Directory -Force out | Out-Null
           Copy-Item dist\*.exe out\
           if (Test-Path shots\store) { New-Item -ItemType Directory -Force out\store | Out-Null; Copy-Item shots\store\* out\store\ }
+          if (Test-Path dist\store) { New-Item -ItemType Directory -Force out\msix | Out-Null; Copy-Item dist\store\*.msix out\msix\ }
           if (Test-Path shots\free) { New-Item -ItemType Directory -Force out\free | Out-Null; Copy-Item shots\free\* out\free\ }
           if (Test-Path shots) { Copy-Item shots\*.* out\ }
           Set-Location out

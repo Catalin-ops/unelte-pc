@@ -1,0 +1,5 @@
+# Valorile din Partner Center -> Sănătate PC -> Product management -> Product identity.
+# Cât timp sunt goale, pachetele se construiesc doar pentru test (identitate de test).
+Name=
+Publisher=
+PublisherDisplayName=

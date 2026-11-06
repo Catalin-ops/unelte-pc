@@ -24,5 +24,7 @@ function Build($name, $folder, $icon, $manifest, $extra) {
 
 Build 'RecuperareFisiere' 'RecuperareFisiere' 'recuperare.ico' 'app.manifest' @()
 Build 'SanatatePC' 'SanatatePC' 'sanatate.ico' 'app.manifest' @()
+# varianta pentru Microsoft Store (MSIX): porneste fara cerere de administrator
+Build 'SanatatePC_Store' 'SanatatePC' 'sanatate.ico' 'app_user.manifest' @()
 Build 'GeneratorLicente' 'GeneratorLicente' 'sanatate.ico' 'app_user.manifest' @((Resolve-Path 'SanatatePC\Licenta.cs').Path)
 Get-ChildItem dist
