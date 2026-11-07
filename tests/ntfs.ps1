@@ -38,7 +38,9 @@ Get-ChildItem T:\Documente -Recurse -File | ForEach-Object { $orig[$_.Name] = (G
 Write-VolumeCache T
 Get-ChildItem T:\Documente -Recurse -File | Remove-Item -Force       # stergere definitiva (ca Shift+Delete)
 Write-VolumeCache T
-Start-Sleep 5
+fsutil volume dismount T: | Out-Host      # forteaza scrierea tabelei de fisiere pe disc
+Start-Sleep 3
+$null = Get-ChildItem T:\ -ErrorAction SilentlyContinue
 
 $rec = [Reflection.Assembly]::LoadFrom((Resolve-Path 'dist\RecuperareFisiere.exe'))
 $out = Join-Path $env:RUNNER_TEMP 'rec_out'
