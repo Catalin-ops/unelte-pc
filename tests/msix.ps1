@@ -35,8 +35,8 @@ function Pack($flavor, $exe, $extra) {
 $pAdmin = Pack 'cu_administrator' 'SanatatePC.exe' "`n    <rescap:Capability Name=`"allowElevation`"/>"
 $pStd = Pack 'fara_administrator' 'SanatatePC_Store.exe' ''
 
-# test: semnam o COPIE cu un certificat de test, o instalam si pornim aplicatia (pachetele pentru Store raman nesemnate)
-if (-not $real) {
+# test: semnam o COPIE cu un certificat de test (acelasi Publisher), o instalam si pornim aplicatia; pachetele pentru Store raman nesemnate
+if ($true) {
     $cert = New-SelfSignedCertificate -Type CodeSigningCert -Subject $pub -CertStoreLocation 'Cert:\CurrentUser\My' -KeyUsage DigitalSignature -TextExtension @('2.5.29.37={text}1.3.6.1.5.5.7.3.3', '2.5.29.19={text}')
     $pfx = Join-Path $env:RUNNER_TEMP 'test.pfx'; $pw = ConvertTo-SecureString 'test' -AsPlainText -Force
     Export-PfxCertificate -Cert $cert -FilePath $pfx -Password $pw | Out-Null

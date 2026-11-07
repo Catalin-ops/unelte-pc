@@ -1,5 +1,5 @@
 # Valorile din Partner Center -> Sănătate PC -> Product management -> Product identity.
-# Cât timp sunt goale, pachetele se construiesc doar pentru test (identitate de test).
-Name=
-Publisher=
-PublisherDisplayName=
+# Store ID: 9NFDC2LG5L6S  ·  https://apps.microsoft.com/detail/9NFDC2LG5L6S
+Name=Mcatalin.SntatePC
+Publisher=CN=F0D2DD35-F36B-4315-94EC-03920F7F08DA
+PublisherDisplayName=Mcatalin
