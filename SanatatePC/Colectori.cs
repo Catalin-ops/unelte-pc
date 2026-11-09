@@ -473,7 +473,7 @@ namespace InfoPcDisk
         {
             Section sec = new Section("ram", "Memorie RAM", "\uE9D2");
             sec.Description = "Plăcuțele de memorie montate, tipul, frecvența și cât din memorie e folosită acum.";
-            sec.ActionText = "Testează memoria (la repornire)";
+            sec.ActionText = "Testează memoria RAM";
             List<ManagementObject> mods = Cim("SELECT BankLabel, DeviceLocator, Capacity, Manufacturer, PartNumber, SerialNumber, Speed, ConfiguredClockSpeed, SMBIOSMemoryType, FormFactor FROM Win32_PhysicalMemory");
             List<ManagementObject> arr = Cim("SELECT MemoryDevices, MaxCapacity, MaxCapacityEx FROM Win32_PhysicalMemoryArray");
             List<ManagementObject> os = Cim("SELECT TotalVisibleMemorySize, FreePhysicalMemory FROM Win32_OperatingSystem");
@@ -543,6 +543,17 @@ namespace InfoPcDisk
             }
             else if (st.MemTestResult == 0) sum.Add("Ultimul test de memorie", "fără erori (" + Date(st.MemTestDate) + ")", "#4ADE80");
             else sum.Add("Ultimul test de memorie", "nu a fost rulat");
+            RamTestResult rt = RamTestResult.Load();
+            if (rt != null)
+            {
+                string res = (rt.Errors > 0 ? rt.Errors + (rt.Errors == 1 ? " eroare" : " erori") : "fără erori") + " · " + rt.TestedGB.ToString("0.#", RO) + " GB · " + rt.Passes + (rt.Passes == 1 ? " trecere" : " treceri") + " · " + Date(rt.Date) + (rt.Completed ? "" : " (oprit înainte de final)");
+                sum.Add("Test RAM în aplicație", res, rt.Errors > 0 ? "#F87171" : "#4ADE80");
+                if (rt.Errors > 0)
+                {
+                    sum.Raise(2, "Testul de memorie din aplicație a găsit " + rt.Errors + (rt.Errors == 1 ? " eroare" : " erori") + " pe " + Date(rt.Date) + ". Memoria are o problemă.");
+                    Recs.Add(1, "Memorie RAM", "Înlocuire memorie RAM defectă", "Testul din aplicație a găsit " + rt.Errors + " erori. Ca să găsești plăcuța defectă, testează-le pe rând (câte una montată).", "Memorie RAM " + type);
+                }
+            }
             if (st.BsodHints.Exists(delegate(string h) { return h.IndexOf("RAM", StringComparison.Ordinal) >= 0; }))
                 sum.Raise(1, "Unele ecrane albastre recente au coduri care indică frecvent memoria RAM. Rulează testul de memorie.");
 

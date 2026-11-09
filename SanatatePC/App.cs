@@ -22,9 +22,9 @@ using System.Windows.Media.Imaging;
 [assembly: AssemblyCompany("Info PC Electric S.R.L.")]
 [assembly: AssemblyProduct("Sănătate PC")]
 [assembly: AssemblyCopyright("© 2026 Info PC Electric")]
-[assembly: AssemblyVersion("1.2.0.0")]
-[assembly: AssemblyInformationalVersion("1.2.0")]
-[assembly: AssemblyFileVersion("1.2.0.0")]
+[assembly: AssemblyVersion("1.3.0.0")]
+[assembly: AssemblyInformationalVersion("1.3.0")]
+[assembly: AssemblyFileVersion("1.3.0.0")]
 
 namespace InfoPcDisk
 {
@@ -762,14 +762,16 @@ namespace InfoPcDisk
 
         void RunAction()
         {
-            if ((actionBtn.Tag as string) == "ram")
-            {
-                MessageBoxResult r = MessageBox.Show("Se deschide Diagnosticul de memorie Windows.\n\nAlege „Repornește acum și verifică problemele”. Testul durează 10–20 de minute, iar rezultatul apare aici după repornire.\n\nSalvează-ți întâi lucrul deschis.",
-                    "Test memorie RAM", MessageBoxButton.OKCancel, MessageBoxImage.Information);
-                if (r != MessageBoxResult.OK) return;
-                try { System.Diagnostics.Process.Start(System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "MdSched.exe")); }
-                catch (Exception ex) { MessageBox.Show("Nu am putut porni testul: " + ex.Message, "Sănătate PC"); }
-            }
+            if ((actionBtn.Tag as string) == "ram") ShowRamTest();
+        }
+
+        void StartWindowsMemTest(Window owner)
+        {
+            MessageBoxResult r = MessageBox.Show(owner, "Se deschide Diagnosticul de memorie Windows.\n\nAlege „Repornește acum și verifică problemele”. Testul durează 10–20 de minute, verifică toată memoria (și cea folosită de Windows), iar rezultatul apare aici după repornire.\n\nSalvează-ți întâi lucrul deschis.",
+                "Test memorie RAM", MessageBoxButton.OKCancel, MessageBoxImage.Information);
+            if (r != MessageBoxResult.OK) return;
+            try { System.Diagnostics.Process.Start(System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "MdSched.exe")); }
+            catch (Exception ex) { MessageBox.Show(owner, "Nu am putut porni testul: " + ex.Message, "Sănătate PC"); }
         }
 
         // ------------------------------------------------------------ navigare

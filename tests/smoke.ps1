@@ -80,6 +80,21 @@ $pages = $R.GetMethod('SavePdf').Invoke($null, [object[]]@($doc, $pdfPath, [stri
 Write-Host "PDF: $pages pagini, $((Get-Item shots\raport_test.pdf).Length) octeti"
 if ($pages -lt 1) { throw 'PDF gol' }
 
+# test RAM in aplicatie: memorie buna (0 erori) si un bit stricat intentionat (trebuie gasit)
+$RT = $asm.GetType('InfoPcDisk.RamTester')
+foreach ($flip in @(-1, 123457)) {
+    $t = [Activator]::CreateInstance($RT)
+    $t.TargetBytes = [long](1GB); $t.Passes = 1; $t.SimulateFlipAt = [long]$flip
+    $t.StartAsync()
+    $w = 0; while (-not $t.Finished -and $w -lt 1200) { Start-Sleep -Milliseconds 100; $w++ }
+    $sec = ((Get-Date) - $t.Start).TotalSeconds
+    Write-Host ("Test RAM (bit stricat la {0}): {1:0.0} GB in {2:0.0} s, {3} erori, blocat in RAM: {4}, eroare: {5}" -f $flip, ($t.AllocatedBytes / 1GB), $sec, $t.Errors, $t.LockedInRam, $t.Error)
+    foreach ($l in $t.LogLines()) { Write-Host "   $l" }
+    if ($t.Error) { throw "Testul RAM a esuat: $($t.Error)" }
+    if ($flip -lt 0 -and $t.Errors -ne 0) { throw 'Testul RAM a raportat erori pe memorie buna' }
+    if ($flip -ge 0 -and $t.Errors -lt 1) { throw 'Testul RAM nu a gasit bitul stricat intentionat' }
+}
+
 # proiect cu 3 calculatoare + raport pe institutie
 $recsT = $asm.GetType('InfoPcDisk.Recs')
 $recNow = $recsT.GetMethod('Take').Invoke($null, @())

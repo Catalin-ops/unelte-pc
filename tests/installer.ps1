@@ -1,7 +1,7 @@
 # Construieste installer-ul Sanatate PC, il testeaza (instalare + dezinstalare silentioasa) si face capturile pentru Store.
 $ErrorActionPreference = 'Stop'
 Set-Location (Split-Path $PSScriptRoot)
-$ver = '1.2.0'
+$ver = '1.3.0'
 
 # Inno Setup + traducerea romaneasca (neoficiala, din sursele Inno Setup)
 if (-not (Test-Path 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe')) { choco install innosetup -y --no-progress | Out-Null }

@@ -1,0 +1,113 @@
+<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Test memorie RAM — Sănătate PC" Width="720" Height="680" MinWidth="640" MinHeight="600" ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner" Background="#0E131F" FontFamily="Segoe UI" Foreground="#E6EAF2"
+        TextOptions.TextFormattingMode="Display" UseLayoutRounding="True">
+  <Window.Resources>
+    <Style TargetType="Button">
+      <Setter Property="Foreground" Value="White"/>
+      <Setter Property="FontSize" Value="13.5"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="Height" Value="40"/>
+      <Setter Property="Background" Value="#1B2436"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Border x:Name="Bd" CornerRadius="10" Padding="16,0" Background="{TemplateBinding Background}" BorderBrush="#2C3A57" BorderThickness="1">
+              <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Bd" Property="BorderBrush" Value="#3B82F6"/></Trigger>
+              <Trigger Property="IsEnabled" Value="False"><Setter TargetName="Bd" Property="Opacity" Value="0.4"/></Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style TargetType="RadioButton">
+      <Setter Property="Foreground" Value="#E6EAF2"/>
+      <Setter Property="FontSize" Value="13.5"/>
+      <Setter Property="Margin" Value="0,0,18,0"/>
+    </Style>
+    <Style TargetType="ProgressBar">
+      <Setter Property="Height" Value="12"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="ProgressBar">
+            <Grid>
+              <Border x:Name="PART_Track" CornerRadius="6" Background="#1E293B"/>
+              <Border x:Name="PART_Indicator" CornerRadius="6" HorizontalAlignment="Left">
+                <Border.Background>
+                  <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                    <GradientStop Color="#3B82F6" Offset="0"/><GradientStop Color="#06B6D4" Offset="1"/>
+                  </LinearGradientBrush>
+                </Border.Background>
+              </Border>
+            </Grid>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+  </Window.Resources>
+  <Grid Margin="26,22">
+    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+    <StackPanel>
+      <TextBlock Text="Test memorie RAM" FontSize="22" FontWeight="Bold"/>
+      <TextBlock Text="Scrie tipare de test în memoria liberă și verifică fiecare bit. Rulează direct în Windows, fără repornire. Închide programele deschise ca să rămână mai multă memorie de testat." FontSize="12.5" Foreground="#8A96B0" TextWrapping="Wrap" Margin="0,4,0,0"/>
+    </StackPanel>
+
+    <Border x:Name="SetupBox" Grid.Row="1" Background="#151C2C" BorderBrush="#24304A" BorderThickness="1" CornerRadius="14" Padding="18" Margin="0,16,0,0">
+      <StackPanel>
+        <TextBlock x:Name="MemInfo" FontSize="13" Foreground="#C7CFDF"/>
+        <TextBlock Text="Cât testez" FontSize="12" Foreground="#8A96B0" Margin="0,14,0,4"/>
+        <Grid>
+          <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="90"/></Grid.ColumnDefinitions>
+          <Slider x:Name="SizeSlider" Minimum="0.25" Maximum="8" TickFrequency="0.25" IsSnapToTickEnabled="True" VerticalAlignment="Center"/>
+          <TextBlock x:Name="SizeText" Grid.Column="1" FontSize="16" FontWeight="Bold" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+        </Grid>
+        <TextBlock Text="Durată" FontSize="12" Foreground="#8A96B0" Margin="0,14,0,6"/>
+        <StackPanel Orientation="Horizontal">
+          <RadioButton x:Name="P1" Content="Rapid (1 trecere)" IsChecked="True" GroupName="p"/>
+          <RadioButton x:Name="P3" Content="Normal (3 treceri)" GroupName="p"/>
+          <RadioButton x:Name="P10" Content="Amănunțit (10 treceri)" GroupName="p"/>
+        </StackPanel>
+      </StackPanel>
+    </Border>
+
+    <Border Grid.Row="2" Background="#151C2C" BorderBrush="#24304A" BorderThickness="1" CornerRadius="14" Padding="18" Margin="0,14,0,0">
+      <StackPanel>
+        <Grid>
+          <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+          <StackPanel>
+            <TextBlock x:Name="StateTitle" Text="Gata de pornire" FontSize="17" FontWeight="Bold"/>
+            <TextBlock x:Name="PhaseText" FontSize="12.5" Foreground="#8A96B0" Margin="0,3,0,0"/>
+          </StackPanel>
+          <TextBlock x:Name="PctText" Grid.Column="1" Text="0%" FontSize="32" FontWeight="Bold" Foreground="#93C5FD" VerticalAlignment="Center"/>
+        </Grid>
+        <ProgressBar x:Name="Prog" Minimum="0" Maximum="100" Margin="0,14,0,14"/>
+        <UniformGrid Columns="4">
+          <StackPanel><TextBlock Text="TESTAT" FontSize="11" Foreground="#8A96B0"/><TextBlock x:Name="MemText" Text="—" FontSize="16" FontWeight="SemiBold" Margin="0,3,0,0"/></StackPanel>
+          <StackPanel><TextBlock Text="VITEZĂ" FontSize="11" Foreground="#8A96B0"/><TextBlock x:Name="SpeedText" Text="—" FontSize="16" FontWeight="SemiBold" Margin="0,3,0,0"/></StackPanel>
+          <StackPanel><TextBlock Text="TIMP RĂMAS" FontSize="11" Foreground="#8A96B0"/><TextBlock x:Name="EtaText" Text="—" FontSize="16" FontWeight="SemiBold" Margin="0,3,0,0"/></StackPanel>
+          <StackPanel><TextBlock Text="ERORI" FontSize="11" Foreground="#8A96B0"/><TextBlock x:Name="ErrText" Text="0" FontSize="16" FontWeight="Bold" Foreground="#4ADE80" Margin="0,3,0,0"/></StackPanel>
+        </UniformGrid>
+      </StackPanel>
+    </Border>
+
+    <Border Grid.Row="3" Background="#0F1524" BorderBrush="#24304A" BorderThickness="1" CornerRadius="14" Padding="14,10" Margin="0,14,0,14">
+      <ScrollViewer x:Name="LogScroll" VerticalScrollBarVisibility="Auto">
+        <TextBlock x:Name="LogText" FontFamily="Consolas" FontSize="12" Foreground="#AEB8CC" TextWrapping="Wrap"/>
+      </ScrollViewer>
+    </Border>
+
+    <Grid Grid.Row="4">
+      <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+      <Button x:Name="BootBtn" Content="Test complet la repornire (Windows)" HorizontalAlignment="Left"/>
+      <StackPanel Grid.Column="1" Orientation="Horizontal">
+        <Button x:Name="CloseBtn" Content="Închide" Margin="0,0,10,0"/>
+        <Button x:Name="StartBtn" Content="Pornește testul" Background="#2563EB"/>
+      </StackPanel>
+    </Grid>
+  </Grid>
+</Window>

@@ -16,7 +16,7 @@ function Build($name, $folder, $icon, $manifest, $extra) {
     $src = @(Get-ChildItem "$folder\*.cs" | ForEach-Object { $_.FullName })
     if ($extra) { $src += @($extra) }
     $res = @(Get-ChildItem "$folder\*.xaml" | ForEach-Object { "/resource:$($_.FullName),$($_.Name)" })
-    & $csc /nologo /target:winexe /optimize+ /codepage:65001 /platform:anycpu `
+    & $csc /nologo /target:winexe /optimize+ /unsafe /codepage:65001 /platform:anycpu `
         "/out:dist\$name.exe" "/win32manifest:assets\$manifest" "/win32icon:assets\$icon" `
         @res @refs @src
     if ($LASTEXITCODE -ne 0) { throw "Compilarea $name a esuat" }
