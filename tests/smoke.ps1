@@ -95,6 +95,56 @@ foreach ($flip in @(-1, 123457)) {
     if ($flip -ge 0 -and $t.Errors -lt 1) { throw 'Testul RAM nu a gasit bitul stricat intentionat' }
 }
 
+# audit complet de 1 minut: stres procesor, RAM, citirea suprafetei discului 0, erori de sistem
+$AO = [Activator]::CreateInstance($asm.GetType('InfoPcDisk.AuditOptions'))
+$AO.Minutes = 1
+$DR = $asm.GetType('InfoPcDisk.DiskReport')
+$adl = [Activator]::CreateInstance([Collections.Generic.List``1].MakeGenericType($DR))
+$d0 = [Activator]::CreateInstance($DR); $d0.Number = 0; $d0.Title = 'Disc de sistem CI'; $adl.Add($d0)
+$AR = $asm.GetType('InfoPcDisk.AuditRunner')
+$run = [Activator]::CreateInstance($AR, [object[]]@($AO, $adl))
+$run.StartAsync()
+$w = 0; while (-not $run.Finished -and $w -lt 1800) { Start-Sleep -Milliseconds 100; $w++ }
+$res = $run.Result
+Write-Host ("Audit: durata reala {0:0.0} s (planificat {1} min), teste: {2}" -f $res.Seconds, $res.PlannedMinutes, $res.Tests)
+foreach ($st in $run.Steps) { Write-Host ("   [{0}] {1} | {2}" -f $st.State, $st.Name, $st.Result) }
+foreach ($it in $res.Items) {
+    Write-Host ("   {0} (nivel {1}) - {2}" -f $it.Title, $it.Level, $it.Subtitle)
+    foreach ($kv in $it.Props) { Write-Host ("        {0}: {1}" -f $kv.Key, $kv.Value) }
+    foreach ($n in $it.Notes) { Write-Host ("        ! {0}" -f $n) }
+}
+if (-not $run.Finished) { throw 'Auditul nu s-a terminat' }
+if ($res.Items.Count -ne 4) { throw "Auditul ar trebui sa aiba 4 rezultate, are $($res.Items.Count)" }
+if ($res.Seconds -lt 50 -or $res.Seconds -gt 150) { throw "Durata auditului nu respecta minutul ales: $($res.Seconds) s" }
+foreach ($it in $res.Items) { foreach ($n in $it.Notes) { if ($n -like '*nu a putut rula*') { throw "Test de audit esuat: $n" } } }
+$diskItem = $res.Items | Where-Object { $_.Key -eq 'disc' }
+if ($diskItem.Level -lt 0) { throw 'Citirea suprafetei discului nu a rulat' }
+$again = $asm.GetType('InfoPcDisk.AuditResult').GetMethod('LoadRecent').Invoke($null, @())
+if (-not $again) { throw 'Rezultatul auditului nu a fost salvat' }
+$asec = $again.BuildSection()
+Write-Host "Sectiune audit: $($asec.Summary)"
+$list.Add($asec)
+$adoc = $R.GetMethod('Build').Invoke($null, @($list, $dl, $v, $set, 'Client Audit SRL', ''))
+$apdf = [string](Join-Path (Get-Location).Path 'shots\raport_audit.pdf')
+$ap = $R.GetMethod('SavePdf').Invoke($null, [object[]]@($adoc, $apdf, [string]'Info PC Electric - audit'))
+Write-Host "PDF audit: $ap pagini"
+# fereastra de audit la final, randata in PNG (verificare vizuala)
+$aw = [Windows.Markup.XamlReader]::Load($asm.GetManifestResourceStream('Audit.xaml'))
+$aw.FindName('StepList').ItemsSource = $run.Steps
+$aw.FindName('StateTitle').Text = 'Audit terminat'
+$aw.FindName('ClockText').Text = $asm.GetType('InfoPcDisk.AuditResult').GetMethod('Duration').Invoke($null, @([double]$res.Seconds))
+$aw.FindName('ClockSub').Text = 'durata reala'
+$aw.FindName('Prog').Value = 100
+$aw.FindName('SetupBox').IsEnabled = $false
+$root = $aw.Content; $aw.Content = $null
+$host2 = New-Object Windows.Controls.Grid; $host2.Background = $aw.Background; $host2.Children.Add($root) | Out-Null
+[Windows.Documents.TextElement]::SetFontFamily($host2, $aw.FontFamily); [Windows.Documents.TextElement]::SetForeground($host2, $aw.Foreground)
+foreach ($i in 1..3) { $host2.Measure((New-Object Windows.Size 780, 900)); $host2.Arrange((New-Object Windows.Rect 0, 0, 780, 900)); $host2.UpdateLayout() }
+$rtb = New-Object Windows.Media.Imaging.RenderTargetBitmap 1560, 1800, 192, 192, ([Windows.Media.PixelFormats]::Pbgra32)
+$rtb.Render($host2)
+$enc = New-Object Windows.Media.Imaging.PngBitmapEncoder; $enc.Frames.Add([Windows.Media.Imaging.BitmapFrame]::Create($rtb))
+$fs = [IO.File]::Create((Join-Path (Get-Location).Path 'shots\audit_fereastra.png')); $enc.Save($fs); $fs.Close()
+
 # proiect cu 3 calculatoare + raport pe institutie
 $recsT = $asm.GetType('InfoPcDisk.Recs')
 $recNow = $recsT.GetMethod('Take').Invoke($null, @())

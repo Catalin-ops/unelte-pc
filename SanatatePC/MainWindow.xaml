@@ -197,6 +197,12 @@
             <TextBlock Text="Activează Pro"/>
           </StackPanel>
         </Button>
+        <Button x:Name="AuditBtn" Style="{StaticResource Ghost}" ToolTip="Audit complet: teste reale (procesor, RAM, discuri, erori) pe durata aleasă (Pro)">
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Text="&#xE916;" FontFamily="Segoe MDL2 Assets" Margin="0,2,8,0"/>
+            <TextBlock Text="Audit"/>
+          </StackPanel>
+        </Button>
         <Button x:Name="ProjectsBtn" Style="{StaticResource Ghost}" ToolTip="Proiecte: salvează mai multe calculatoare dintr-o instituție și fă raportul comun (Pro)">
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="&#xE8B7;" FontFamily="Segoe MDL2 Assets" Margin="0,2,8,0"/>

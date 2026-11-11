@@ -17,6 +17,7 @@ namespace InfoPcDisk
         public string Company = "", Phone = "", Email = "", Website = "", Address = "", Technician = "";
         public string LogoFile = "";   // nume fisier in acelasi folder cu setarile
         public string Dir = "";
+        public AuditOptions Audit = new AuditOptions();
 
         public string LogoPath { get { return LogoFile.Length > 0 ? Path.Combine(Dir, LogoFile) : ""; } }
 
@@ -41,6 +42,11 @@ namespace InfoPcDisk
                     case "Adresa": s.Address = v; break;
                     case "Tehnician": s.Technician = v; break;
                     case "Logo": s.LogoFile = v; break;
+                    case "AuditMinute": { int m; if (int.TryParse(v, out m) && m >= 1 && m <= 240) s.Audit.Minutes = m; break; }
+                    case "AuditStres": s.Audit.Stress = v != "0"; break;
+                    case "AuditRam": s.Audit.Ram = v != "0"; break;
+                    case "AuditDisc": s.Audit.Disk = v != "0"; break;
+                    case "AuditErori": s.Audit.Errors = v != "0"; break;
                 }
             }
             return s;
@@ -57,6 +63,11 @@ namespace InfoPcDisk
             sb.AppendLine("Adresa=" + Address);
             sb.AppendLine("Tehnician=" + Technician);
             sb.AppendLine("Logo=" + LogoFile);
+            sb.AppendLine("AuditMinute=" + Audit.Minutes);
+            sb.AppendLine("AuditStres=" + (Audit.Stress ? 1 : 0));
+            sb.AppendLine("AuditRam=" + (Audit.Ram ? 1 : 0));
+            sb.AppendLine("AuditDisc=" + (Audit.Disk ? 1 : 0));
+            sb.AppendLine("AuditErori=" + (Audit.Errors ? 1 : 0));
             File.WriteAllText(Path.Combine(Dir, "setari.ini"), sb.ToString(), new UTF8Encoding(false));
         }
 
@@ -203,6 +214,8 @@ namespace InfoPcDisk
             metaRow("Calculator", pc + " (" + Environment.MachineName + ")");
             if (sys != null) metaRow("Sistem", sys.Summary);
             metaRow("Data verificării", DateTime.Now.ToString("dd.MM.yyyy, HH:mm", RO));
+            Section aud = sections.Find(delegate(Section s) { return s.Key == "audit"; });
+            if (aud != null && aud.Cards.Count > 0) metaRow("Audit complet", aud.Cards[0].Title.Replace("Durata auditului: ", "") + " (" + aud.Cards[0].Subtitle + ")");
             metaRow("Tehnician", st.Technician);
             meta.RowGroups.Add(mg);
             d.Blocks.Add(meta);

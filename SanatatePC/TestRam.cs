@@ -76,6 +76,10 @@ namespace InfoPcDisk
         public long TargetBytes;
         public int Passes = 1;
         public long SimulateFlipAt = -1;   // doar pentru testul automat: strica intentionat un bit dupa scriere
+        // audit: dupa ce trece termenul, testul se opreste la capatul tiparului curent (dar termina cel putin o trecere)
+        public DateTime Deadline = DateTime.MaxValue;
+        public int PassesDone;
+        public bool StoppedByDeadline;
 
         public volatile bool Cancel;
         public volatile bool Finished = true;
@@ -121,7 +125,7 @@ namespace InfoPcDisk
             Finished = false;
             Cancel = false;
             Error = null;
-            Errors = 0; Done = 0; CurrentPass = 0;
+            Errors = 0; Done = 0; CurrentPass = 0; PassesDone = 0; StoppedByDeadline = false;
             Start = DateTime.Now;
             Thread t = new Thread(Run);
             t.IsBackground = true;
@@ -161,7 +165,11 @@ namespace InfoPcDisk
                         if (Cancel) break;
                         if (SimulateFlipAt >= 0 && pass == 1 && pat == 0) FlipForTest();
                         RunParallel(threads, pass, pat, false);
+                        if (pass > 1 && DateTime.Now > Deadline) { StoppedByDeadline = true; break; }
                     }
+                    if (!Cancel && !StoppedByDeadline) PassesDone = pass;
+                    if (StoppedByDeadline) { AddLog("Timpul alocat s-a terminat în trecerea " + pass + "."); break; }
+                    if (DateTime.Now > Deadline && pass < Passes) { StoppedByDeadline = true; AddLog("Trecerea " + pass + " terminată: " + Errors + (Errors == 1 ? " eroare" : " erori") + ". Timpul alocat s-a terminat."); break; }
                     AddLog("Trecerea " + pass + " terminată: " + Errors + (Errors == 1 ? " eroare" : " erori") + " până acum.");
                 }
                 Phase = Cancel ? "Oprit" : "Gata";

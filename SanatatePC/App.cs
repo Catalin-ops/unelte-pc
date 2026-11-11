@@ -22,9 +22,9 @@ using System.Windows.Media.Imaging;
 [assembly: AssemblyCompany("Info PC Electric S.R.L.")]
 [assembly: AssemblyProduct("Sănătate PC")]
 [assembly: AssemblyCopyright("© 2026 Info PC Electric")]
-[assembly: AssemblyVersion("1.3.0.0")]
-[assembly: AssemblyInformationalVersion("1.3.0")]
-[assembly: AssemblyFileVersion("1.3.0.0")]
+[assembly: AssemblyVersion("1.4.0.0")]
+[assembly: AssemblyInformationalVersion("1.4.0")]
+[assembly: AssemblyFileVersion("1.4.0.0")]
 
 namespace InfoPcDisk
 {
@@ -154,6 +154,7 @@ namespace InfoPcDisk
             saveBtn.Click += delegate { SaveReport(); };
             settingsBtn.Click += delegate { ShowSettings(); };
             F<Button>("ProjectsBtn").Click += delegate { ShowProjects(); };
+            F<Button>("AuditBtn").Click += delegate { ShowAudit(); };
             actionBtn.Click += delegate { RunAction(); };
             bool started = false;
             win.ContentRendered += delegate
@@ -361,6 +362,18 @@ namespace InfoPcDisk
                 email = (TextBox)d.FindName("EmailBox"), web = (TextBox)d.FindName("WebBox"), tech = (TextBox)d.FindName("TechBox");
             Image img = (Image)d.FindName("LogoImg");
             company.Text = st.Company; addr.Text = st.Address; phone.Text = st.Phone; email.Text = st.Email; web.Text = st.Website; tech.Text = st.Technician;
+            WrapPanel aMin = (WrapPanel)d.FindName("AuditMinPanel");
+            CheckBox aStress = (CheckBox)d.FindName("AuditStress"), aRam = (CheckBox)d.FindName("AuditRam"), aDisk = (CheckBox)d.FindName("AuditDisk"), aErr = (CheckBox)d.FindName("AuditErr");
+            bool anyMin = false;
+            foreach (object o in aMin.Children) { RadioButton rb = o as RadioButton; if (rb != null && (string)rb.Tag == st.Audit.Minutes.ToString()) { rb.IsChecked = true; anyMin = true; } }
+            if (!anyMin)
+            {
+                RadioButton extra = new RadioButton();
+                extra.Style = (Style)d.FindResource("Chip"); extra.GroupName = "am";
+                extra.Content = st.Audit.Minutes + " min"; extra.Tag = st.Audit.Minutes.ToString(); extra.IsChecked = true;
+                aMin.Children.Add(extra);
+            }
+            aStress.IsChecked = st.Audit.Stress; aRam.IsChecked = st.Audit.Ram; aDisk.IsChecked = st.Audit.Disk; aErr.IsChecked = st.Audit.Errors;
             string pendingLogo = null;
             bool clearLogo = false;
             Action<string> preview = delegate(string p)
@@ -389,6 +402,8 @@ namespace InfoPcDisk
                 {
                     st.Company = company.Text.Trim(); st.Address = addr.Text.Trim(); st.Phone = phone.Text.Trim();
                     st.Email = email.Text.Trim(); st.Website = web.Text.Trim(); st.Technician = tech.Text.Trim();
+                    foreach (object o in aMin.Children) { RadioButton rb = o as RadioButton; if (rb != null && rb.IsChecked == true) st.Audit.Minutes = int.Parse((string)rb.Tag); }
+                    st.Audit.Stress = aStress.IsChecked == true; st.Audit.Ram = aRam.IsChecked == true; st.Audit.Disk = aDisk.IsChecked == true; st.Audit.Errors = aErr.IsChecked == true;
                     if (clearLogo) st.LogoFile = "";
                     if (pendingLogo != null) st.SetLogo(pendingLogo);
                     st.Save();
@@ -425,6 +440,7 @@ namespace InfoPcDisk
             HideAllPages();
             loadingPanel.Visibility = Visibility.Visible;
             string prevKey = nav.SelectedItem is Section ? ((Section)nav.SelectedItem).Key : null;
+            if (goAfterLoad != null) { prevKey = goAfterLoad; goAfterLoad = null; }
             bool pro = Pro;
 
             Thread t = new Thread(delegate()
@@ -459,11 +475,15 @@ namespace InfoPcDisk
                     Status("Citesc rețeaua…");
                     Section net = Safe(delegate { return Collect.Network(); }, "retea", "Rețea", "");
                     Section stab = Safe(delegate { return Collect.StabilitySection(st); }, "stabilitate", "Stabilitate (30 zile)", "");
+                    // rezultatul ultimului audit complet de pe acest PC (ultimele 24 de ore)
+                    Section aud = null;
+                    if (pro) { AuditResult ar = AuditResult.LoadRecent(); if (ar != null) aud = ar.BuildSection(); }
 
                     secs.Add(cpu); secs.Add(board); secs.Add(ram); secs.Add(gpu); secs.Add(disk);
                     secs.Add(mon);
                     if (bat != null) secs.Add(bat);
                     secs.Add(net); secs.Add(sys); secs.Add(stab);
+                    if (aud != null) secs.Add(aud);
                     EnsureRecs(secs);
                     recs = Recs.Take();
                     Section todo = Recs.BuildSection(recs);
@@ -538,6 +558,7 @@ namespace InfoPcDisk
             comp["retea"] = new string[] { "Rețea" };
             comp["sistem"] = new string[] { "Windows" };
             comp["stabilitate"] = new string[] { "Stabilitate", "Alimentare", "Hardware", "Disc" };
+            comp["audit"] = new string[] { "Procesor", "Memorie RAM", "Disc", "Hardware", "Placă video" };
             foreach (Section s in secs)
             {
                 string[] names;
