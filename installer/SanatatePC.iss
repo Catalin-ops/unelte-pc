@@ -2,7 +2,7 @@
 ; Instalare silentioasa (Microsoft Store): SanatatePC_Setup.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
 
 #ifndef AppVersion
-  #define AppVersion "1.4.0"
+  #define AppVersion "1.4.1"
 #endif
 
 [Setup]
@@ -34,6 +34,7 @@ MinVersion=10.0.17763
 CloseApplications=yes
 RestartApplications=no
 ShowLanguageDialog=no
+UsedUserAreasWarning=no
 
 [Languages]
 #ifexist "Romanian.isl"
@@ -46,6 +47,8 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 Source: "..\dist\SanatatePC.exe"; DestDir: "{app}"; Flags: ignoreversion
+; daca instalatorul ruleaza de pe stick si langa el e licenta, o preia pe acest calculator
+Source: "{src}\licenta.spc"; DestDir: "{userappdata}\InfoPC\SanatatePC"; Flags: external skipifsourcedoesntexist onlyifdoesntexist uninsneveruninstall
 
 [Icons]
 Name: "{autoprograms}\Sănătate PC"; Filename: "{app}\SanatatePC.exe"

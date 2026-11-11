@@ -1,7 +1,7 @@
-# Construieste installer-ul Sanatate PC, il testeaza (instalare + dezinstalare silentioasa) si face capturile pentru Store.
+﻿# Construieste installer-ul Sanatate PC, il testeaza (instalare + dezinstalare silentioasa) si face capturile pentru Store.
 $ErrorActionPreference = 'Stop'
 Set-Location (Split-Path $PSScriptRoot)
-$ver = '1.4.0'
+$ver = '1.4.1'
 
 # Inno Setup + traducerea romaneasca (neoficiala, din sursele Inno Setup)
 if (-not (Test-Path 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe')) { choco install innosetup -y --no-progress | Out-Null }
@@ -14,9 +14,20 @@ if ($LASTEXITCODE -ne 0) { throw 'Compilarea installer-ului a esuat' }
 $setup = Resolve-Path "dist\SanatatePC_Setup_$ver.exe"
 Write-Host "Installer: $setup ($((Get-Item $setup).Length) octeti)"
 
-# test instalare silentioasa (asa o face Microsoft Store)
-$p = Start-Process -FilePath $setup -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART' -Wait -PassThru
+# test instalare silentioasa (asa o face Microsoft Store), rulata "de pe stick": langa installer e licenta.spc
+$appLic = Join-Path $env:APPDATA 'InfoPC\SanatatePC\licenta.spc'
+if (Test-Path $appLic) { Set-ItemProperty $appLic -Name Attributes -Value Normal; Remove-Item $appLic -Force }
+$stick = Join-Path $env:RUNNER_TEMP 'stick'
+New-Item -ItemType Directory -Force $stick | Out-Null
+Copy-Item $setup $stick
+$keyLine = (Get-Content 'tests\licente_test.txt' | Where-Object { $_ -like 'screenshot=*' }) -replace '^screenshot=', ''
+Set-Content (Join-Path $stick 'licenta.spc') $keyLine -Encoding ASCII
+(Get-Item (Join-Path $stick 'licenta.spc')).Attributes = 'Hidden, System, ReadOnly'
+$p = Start-Process -FilePath (Join-Path $stick (Split-Path $setup -Leaf)) -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART' -Wait -PassThru
 if ($p.ExitCode -ne 0) { throw "Instalarea a iesit cu codul $($p.ExitCode)" }
+if (-not (Test-Path $appLic)) { throw 'Installer-ul nu a preluat licenta de langa el' }
+Write-Host "Licenta preluata de installer: $appLic"
+Set-ItemProperty $appLic -Name Attributes -Value Normal; Remove-Item $appLic -Force
 $app = 'C:\Program Files\Info PC Electric\Sanatate PC\SanatatePC.exe'
 if (-not (Test-Path $app)) { throw 'Dupa instalare nu exista SanatatePC.exe' }
 $lnk = Get-ChildItem "$env:ProgramData\Microsoft\Windows\Start Menu\Programs" -Filter '*.lnk' | Where-Object { $_.Name -like 'S*n*tate PC.lnk' }

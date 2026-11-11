@@ -1,7 +1,7 @@
 # Construieste pachetele MSIX pentru Microsoft Store si testeaza instalarea + pornirea variantei fara administrator.
 $ErrorActionPreference = 'Stop'
 Set-Location (Split-Path $PSScriptRoot)
-$ver = '1.4.0.0'
+$ver = '1.4.1.0'
 $kit = Get-ChildItem 'C:\Program Files (x86)\Windows Kits\10\bin' -Directory | Where-Object { $_.Name -match '^10\.' } | Sort-Object Name -Descending |
     ForEach-Object { Join-Path $_.FullName 'x64' } | Where-Object { Test-Path (Join-Path $_ 'makeappx.exe') } | Select-Object -First 1
 if (-not $kit) { throw 'Nu gasesc makeappx.exe (Windows SDK)' }

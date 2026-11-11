@@ -1,0 +1,20 @@
+SANATATE PC - VERSIUNEA PORTABILA (fara instalare)
+Info PC Electric S.R.L. - www.infopc.ro
+
+1. Copiaza folderul "Sanatate PC" pe stick (sau oriunde vrei).
+2. Porneste SanatatePC.exe direct de acolo (clic dreapta -> Ruleaza ca administrator,
+   ca sa poata citi datele SMART ale discurilor). Nu se instaleaza nimic in calculator.
+
+LICENTA PRO
+- Daca pe calculatorul tau Sanatate PC este deja activat, la prima pornire de pe stick
+  licenta se copiaza automat langa SanatatePC.exe. De atunci merge pe orice calculator.
+- Altfel: "Activeaza Pro" -> lipesti cheia -> lasi bifat "Salveaza licenta si pe stick".
+- Sau pui fisierul licenta.spc primit pe email in acelasi folder cu SanatatePC.exe.
+- Fisierul licentei e ascuns, ca sa nu fie sters din greseala.
+
+PE STICK SE PASTREAZA SI
+- setarile firmei si logo-ul pentru raport (setari.ini)
+- proiectele pentru institutii (folderul Proiecte)
+
+Daca instalezi totusi aplicatia pe un calculator, cu stick-ul conectat, aplicatia
+instalata gaseste singura licenta de pe stick si o activeaza pe acel calculator.

@@ -2,6 +2,7 @@
 // Licenta offline: cheie semnata ECDSA P-256 cu numele clientului si data expirarii.
 // Functioneaza pe orice PC, fara internet; fisierul licenta.spc poate sta langa .exe (stick) sau in AppData.
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
@@ -166,7 +167,68 @@ namespace InfoPcDisk
                 }
                 catch (Exception) { }
             }
+            // nicio licenta Pro pe acest PC: o caut pe stick-urile conectate si o preiau (aplicatie instalata, stick cu licenta)
+            License found = FindOnRemovable();
+            if (found != null)
+            {
+                try
+                {
+                    Directory.CreateDirectory(AppDataDir);
+                    string f = Path.Combine(AppDataDir, FileName);
+                    WriteHidden(f, found.Raw);
+                    ImportedFrom = found.SourcePath;
+                    found.SourcePath = f;
+                }
+                catch (Exception) { }
+                return found;
+            }
             return best;
+        }
+
+        // calea de unde a fost preluata licenta la pornire (pentru mesajul catre utilizator)
+        public static string ImportedFrom;
+
+        // cauta licenta.spc valida (Pro) pe stick-uri: in radacina si in folderele de pe primele doua niveluri
+        public static License FindOnRemovable()
+        {
+            try
+            {
+                foreach (DriveInfo d in DriveInfo.GetDrives())
+                {
+                    try
+                    {
+                        if (d.DriveType != DriveType.Removable || !d.IsReady) continue;
+                        List<string> files = new List<string>();
+                        CollectFiles(d.RootDirectory.FullName, 0, files);
+                        foreach (string f in files)
+                        {
+                            License l = Parse(File.ReadAllText(f));
+                            l.SourcePath = f;
+                            if (l.IsPro) return l;
+                        }
+                    }
+                    catch (Exception) { }
+                }
+            }
+            catch (Exception) { }
+            return null;
+        }
+
+        static void CollectFiles(string dir, int depth, List<string> files)
+        {
+            try
+            {
+                string f = Path.Combine(dir, FileName);
+                if (File.Exists(f)) files.Add(f);
+                if (depth >= 2 || files.Count > 20) return;
+                foreach (string sub in Directory.GetDirectories(dir))
+                {
+                    string n = Path.GetFileName(sub);
+                    if (n.StartsWith("$") || n.Equals("System Volume Information", StringComparison.OrdinalIgnoreCase)) continue;
+                    CollectFiles(sub, depth + 1, files);
+                }
+            }
+            catch (Exception) { }
         }
 
         // salveaza licenta; intoarce calea sau arunca exceptie

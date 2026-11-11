@@ -15,6 +15,16 @@ jobs:
       - name: Compilare
         shell: powershell
         run: ./build.ps1
+      - name: Versiunea portabila (.zip)
+        shell: powershell
+        run: |
+          $v = (Get-Item dist\SanatatePC.exe).VersionInfo.ProductVersion
+          $p = "dist\portabil\Sanatate PC"
+          New-Item -ItemType Directory -Force $p | Out-Null
+          Copy-Item dist\SanatatePC.exe $p
+          Copy-Item portabil\CITESTE-MA.txt $p
+          Compress-Archive -Path "dist\portabil\Sanatate PC" -DestinationPath "dist\SanatatePC_Portabil_$v.zip" -Force
+          Get-ChildItem dist\*.zip
       - name: Test pornire (verifica XAML si initializare)
         shell: powershell
         run: ./tests/smoke.ps1
@@ -50,6 +60,7 @@ jobs:
           $sha = "${{ github.sha }}".Substring(0,7)
           New-Item -ItemType Directory -Force out | Out-Null
           Copy-Item dist\*.exe out\
+          Copy-Item dist\*.zip out\
           if (Test-Path shots\store) { New-Item -ItemType Directory -Force out\store | Out-Null; Copy-Item shots\store\* out\store\ }
           if (Test-Path dist\store) { New-Item -ItemType Directory -Force out\msix | Out-Null; Copy-Item dist\store\*.msix out\msix\ }
           if (Test-Path shots\free) { New-Item -ItemType Directory -Force out\free | Out-Null; Copy-Item shots\free\* out\free\ }
@@ -63,5 +74,5 @@ jobs:
           git push -f -q "https://x-access-token:$env:GH_TOKEN@github.com/${{ github.repository }}.git" build
           Set-Location ..
           cmd /c "gh release delete ultima-versiune --yes --cleanup-tag 2>nul"
-          gh release create ultima-versiune dist\RecuperareFisiere.exe dist\SanatatePC.exe (Get-ChildItem dist\SanatatePC_Setup_*.exe).FullName --title "Ultima versiune ($sha)" --notes "Recuperare Fisiere si Sanatate PC - descarca fisierele .exe de mai jos." --latest
+          gh release create ultima-versiune dist\RecuperareFisiere.exe dist\SanatatePC.exe (Get-ChildItem dist\SanatatePC_Setup_*.exe).FullName (Get-ChildItem dist\SanatatePC_Portabil_*.zip).FullName --title "Ultima versiune ($sha)" --notes "Recuperare Fisiere si Sanatate PC - descarca fisierele .exe de mai jos." --latest
           if ($LASTEXITCODE -ne 0) { exit 1 }

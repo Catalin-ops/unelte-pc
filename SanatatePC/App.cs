@@ -22,9 +22,9 @@ using System.Windows.Media.Imaging;
 [assembly: AssemblyCompany("Info PC Electric S.R.L.")]
 [assembly: AssemblyProduct("Sănătate PC")]
 [assembly: AssemblyCopyright("© 2026 Info PC Electric")]
-[assembly: AssemblyVersion("1.4.0.0")]
-[assembly: AssemblyInformationalVersion("1.4.0")]
-[assembly: AssemblyFileVersion("1.4.0.0")]
+[assembly: AssemblyVersion("1.4.1.0")]
+[assembly: AssemblyInformationalVersion("1.4.1")]
+[assembly: AssemblyFileVersion("1.4.1.0")]
 
 namespace InfoPcDisk
 {
@@ -119,6 +119,14 @@ namespace InfoPcDisk
             Licensing.CopyToExeDirIfMissing(lic);
             settings = Settings.Load(lic);
             UpdateLicenseUi();
+            if (Licensing.ImportedFrom != null && Arg("captura") == null)
+                win.ContentRendered += delegate
+                {
+                    string from = Licensing.ImportedFrom;
+                    Licensing.ImportedFrom = null;
+                    if (from != null) MessageBox.Show(win, "Am găsit licența Pro pe stick (" + Path.GetPathRoot(from) + ") și am activat-o pe acest calculator.\n\nLicențiat pentru: " + lic.Name + "\nValabilă până la: " + lic.ExpiresText,
+                        "Sănătate PC", MessageBoxButton.OK, MessageBoxImage.Information);
+                };
 
             nav.SelectionChanged += delegate { ShowSection(nav.SelectedItem as Section); };
             cardList.SelectionChanged += delegate
@@ -312,6 +320,14 @@ namespace InfoPcDisk
                 Microsoft.Win32.OpenFileDialog o = new Microsoft.Win32.OpenFileDialog();
                 o.Filter = "Licență Sănătate PC (*.spc)|*.spc|Toate fișierele|*.*";
                 if (o.ShowDialog(d) == true) { try { key.Text = File.ReadAllText(o.FileName).Trim(); } catch (Exception ex) { fail(ex.Message); } }
+            };
+            ((Button)d.FindName("ScanBtn")).Click += delegate
+            {
+                License f = Licensing.FindOnRemovable();
+                if (f == null) { fail("Nu am găsit o licență Pro validă pe stick-urile conectate. Pune stick-ul cu licența și încearcă din nou, sau lipește cheia de mai sus."); return; }
+                key.Text = f.Raw;
+                err.Visibility = Visibility.Collapsed;
+                ((TextBlock)d.FindName("ScanInfo")).Text = "Găsită pe " + f.SourcePath + " — " + f.Name + ", valabilă până la " + f.ExpiresText + ". Apasă „Activează”.";
             };
             ((Button)d.FindName("OkBtn")).Click += delegate
             {
