@@ -95,6 +95,10 @@ namespace ScanareRetea
                 WindowStartupLocation = WindowStartupLocation.CenterScreen,
                 Background = B("#0E131F"), FontFamily = new FontFamily("Segoe UI"), Foreground = B("#E6EAF2")
             };
+            Rect wa = SystemParameters.WorkArea;
+            win.MinWidth = Math.Min(900, wa.Width - 10); win.MinHeight = Math.Min(560, wa.Height - 10);
+            win.Width = Math.Min(1240, wa.Width - 10); win.Height = Math.Min(800, wa.Height - 10);
+            if (wa.Width < 1250) win.WindowState = WindowState.Maximized;
             try { win.Icon = System.Windows.Media.Imaging.BitmapFrame.Create(Assembly.GetExecutingAssembly().GetManifestResourceStream("retea.ico")); } catch { }
 
             var root = new DockPanel { Margin = new Thickness(18) };
