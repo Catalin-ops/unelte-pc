@@ -283,12 +283,15 @@ public class Scanner {
 
         // MAC din tabela ARP (doar unde sistemul permite)
         Map<String, String> arp = arpTable();
+        Map<String, Integer> macCount = new HashMap<>();
+        for (String m : arp.values()) macCount.put(m, macCount.containsKey(m) ? macCount.get(m) + 1 : 1);
         for (Map.Entry<String, String> e : arp.entrySet()) {
             long v; try { v = toLong(e.getKey()); } catch (Exception ex) { continue; }
             if (v < a || v > b) continue;
             Host h = alive.get(e.getKey());
             if (h == null) {
                 if (cancel) break;
+                if (macCount.get(e.getValue()) > 2) continue; // proxy ARP: acelasi MAC pentru multe IP-uri
                 h = newHost(e.getKey(), me); h.latency = "fără ping";
                 alive.put(e.getKey(), h);
                 h.mac = e.getValue();

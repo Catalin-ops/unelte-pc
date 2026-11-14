@@ -424,6 +424,7 @@ namespace ScanareRetea
             for (uint v = a; v <= b; v++) ips.Add(FromUint(v));
 
             var alive = new Dictionary<string, Host>();
+            var arpOnly = new List<Host>();
             var lockObj = new object();
             int done = 0, total = ips.Count;
             bool sameNet = li != null;
@@ -442,21 +443,32 @@ namespace ScanareRetea
                     Host h = NewHost(ip, li);
                     if (me) h.Mac = li.Mac; else h.Mac = mac;
                     h.Latency = me ? "-" : (ms >= 0 ? ms + " ms" : "fără ping");
-                    lock (lockObj) alive[ip] = h;
                     h.Vendor = Vendor(h.Mac);
                     h.RandomMac = IsRandomMac(h.Mac);
                     Classify(h);
-                    found(h);
+                    if (ms >= 0 || me || h.IsGateway) { lock (lockObj) alive[ip] = h; found(h); }
+                    else lock (lockObj) arpOnly.Add(h); // confirmat mai jos
                 }
                 int d = Interlocked.Increment(ref done);
                 if (d % 4 == 0 || d == total) progress(d, total * 2, "Caut aparate... " + d + "/" + total);
             });
+
+            // aparate care raspund doar la ARP: unele routere / retele virtuale raspund la ARP
+            // pentru orice adresa (proxy ARP) - le eliminam daca acelasi MAC apare la mai multe IP-uri
+            var macCount = arpOnly.GroupBy(x => x.Mac).ToDictionary(g => g.Key, g => g.Count());
+            var knownMacs = new HashSet<string>(alive.Values.Where(x => !x.IsMe && x.Mac != "").Select(x => x.Mac));
+            foreach (Host h in arpOnly.OrderBy(x => x.IpSort))
+            {
+                if (macCount[h.Mac] > 2 || knownMacs.Contains(h.Mac)) continue;
+                alive[h.Ip] = h; found(h);
+            }
 
             // aparate vazute doar in tabela ARP a Windows-ului
             if (!Cancel)
                 foreach (var kv in ArpTable())
                 {
                     if (alive.ContainsKey(kv.Key)) continue;
+                    if (macCount.ContainsKey(kv.Value) && macCount[kv.Value] > 2) continue;
                     uint v; try { v = ToUint(kv.Key); } catch { continue; }
                     if (v < a || v > b) continue;
                     Host h = NewHost(kv.Key, li);

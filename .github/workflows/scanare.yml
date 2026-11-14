@@ -33,13 +33,16 @@ jobs:
         run: ./tests/scanare.ps1
       - name: Arhiva .zip
         shell: powershell
-        run: Compress-Archive -Path dist\ScanareRetea.exe -DestinationPath dist\ScanareRetea.zip -Force
+        run: |
+          Compress-Archive -Path dist\ScanareRetea.exe -DestinationPath dist\ScanareRetea.zip -Force
+          Copy-Item shots\scanare.png dist\ScanareRetea_captura.png
       - uses: actions/upload-artifact@v4
         with:
           name: ScanareRetea-exe
           path: |
             dist/ScanareRetea.exe
             dist/ScanareRetea.zip
+            dist/ScanareRetea_captura.png
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -87,6 +90,7 @@ jobs:
           files: |
             art/ScanareRetea-exe/ScanareRetea.exe
             art/ScanareRetea-exe/ScanareRetea.zip
+            art/ScanareRetea-exe/ScanareRetea_captura.png
             art/ScanareRetea-apk/ScanareRetea.apk
           body: |
             Scanare Rețea — Info PC Electric

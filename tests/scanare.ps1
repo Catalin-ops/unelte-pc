@@ -21,3 +21,4 @@ $bmp.Save("shots\scanare.png", [Drawing.Imaging.ImageFormat]::Png)
 $g.Dispose(); $bmp.Dispose()
 $p.Kill()
 Write-Host "captura shots\scanare.png"
+exit 0
