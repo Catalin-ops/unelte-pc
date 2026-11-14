@@ -215,7 +215,7 @@ namespace ScanareRetea
             rs.Triggers.Add(gwT);
             grid.RowStyle = rs;
 
-            AddCol("", "Icon", 46, null, 18);
+            AddCol("", "Icon", 58, null, 17);
             AddCol("Tip aparat", "Type", 170, null, 0);
             AddCol("IP", "Ip", 125, "IpSort", 0);
             AddCol("Nume în rețea", "Name", 200, null, 0);
@@ -257,7 +257,7 @@ namespace ScanareRetea
             if (sortPath != null) c.SortMemberPath = sortPath;
             var es = new Style(typeof(TextBlock));
             es.Setters.Add(new Setter(TextBlock.VerticalAlignmentProperty, VerticalAlignment.Center));
-            es.Setters.Add(new Setter(TextBlock.TextTrimmingProperty, TextTrimming.CharacterEllipsis));
+            if (fontSize <= 0) es.Setters.Add(new Setter(TextBlock.TextTrimmingProperty, TextTrimming.CharacterEllipsis));
             if (fontSize > 0)
             {
                 es.Setters.Add(new Setter(TextBlock.FontSizeProperty, fontSize));
