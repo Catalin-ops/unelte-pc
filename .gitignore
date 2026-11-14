@@ -1,1 +1,7 @@
 installer/Romanian.isl
+
+ScanareRetea/manuf.txt
+android-scanare/app/src/main/assets/manuf.txt
+android-scanare/.gradle/
+android-scanare/app/build/
+android-scanare/build/

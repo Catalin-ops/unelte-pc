@@ -1,0 +1,95 @@
+name: Scanare Retea (EXE + APK)
+
+on:
+  push:
+    paths:
+      - 'ScanareRetea/**'
+      - 'android-scanare/**'
+      - 'build-scanare.ps1'
+      - 'tests/scanare.ps1'
+      - '.github/workflows/scanare.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  exe:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lista producatori dupa MAC (Wireshark manuf)
+        shell: powershell
+        continue-on-error: true
+        run: |
+          [Net.ServicePointManager]::SecurityProtocol = 'Tls12'
+          Invoke-WebRequest -UseBasicParsing -Uri 'https://www.wireshark.org/download/automated/data/manuf' -OutFile 'ScanareRetea\manuf.txt'
+          Get-Item ScanareRetea\manuf.txt
+      - name: Compilare
+        shell: powershell
+        run: ./build-scanare.ps1
+      - name: Test pornire si scanare
+        shell: powershell
+        run: ./tests/scanare.ps1
+      - name: Arhiva .zip
+        shell: powershell
+        run: Compress-Archive -Path dist\ScanareRetea.exe -DestinationPath dist\ScanareRetea.zip -Force
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ScanareRetea-exe
+          path: |
+            dist/ScanareRetea.exe
+            dist/ScanareRetea.zip
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ScanareRetea-captura
+          path: shots/scanare*.png
+          if-no-files-found: ignore
+
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Lista producatori dupa MAC
+        run: curl -fsSL https://www.wireshark.org/download/automated/data/manuf -o android-scanare/app/src/main/assets/manuf.txt || echo "manuf indisponibil"
+      - name: Compilare APK
+        working-directory: android-scanare
+        run: gradle :app:assembleDebug --no-daemon
+      - name: Redenumire
+        run: cp android-scanare/app/build/outputs/apk/debug/app-debug.apk ScanareRetea.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ScanareRetea-apk
+          path: ScanareRetea.apk
+
+  release:
+    needs: [exe, apk]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: art
+      - name: Publicare Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: scanare-retea-v1.0.${{ github.run_number }}
+          target_commitish: ${{ github.sha }}
+          name: Scanare Rețea v1.0.${{ github.run_number }}
+          make_latest: false
+          files: |
+            art/ScanareRetea-exe/ScanareRetea.exe
+            art/ScanareRetea-exe/ScanareRetea.zip
+            art/ScanareRetea-apk/ScanareRetea.apk
+          body: |
+            Scanare Rețea — Info PC Electric
+            - Windows: ScanareRetea.exe (pornește direct, fără instalare) sau ScanareRetea.zip dacă browserul blochează .exe-ul.
+            - Android: ScanareRetea.apk — descarcă pe telefon și instalează (permite „surse necunoscute” dacă îți cere).
+            Sus apare IP-ul tău; dedesubt toate aparatele din rețea cu tipul ghicit (router, casă de marcat, imprimantă, cameră, PC, telefon, TV…).
