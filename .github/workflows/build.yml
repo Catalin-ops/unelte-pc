@@ -54,7 +54,7 @@ jobs:
           name: capturi
           path: shots/*
       - name: Publicare pe ramura build si in Release
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/wifi-stabil'
         shell: powershell
         env:
           GH_TOKEN: ${{ github.token }}
@@ -75,8 +75,10 @@ jobs:
           git config user.email "github-actions@users.noreply.github.com"
           git add -A
           git commit -q -m "Build $sha"
-          git push -f -q "https://x-access-token:$env:GH_TOKEN@github.com/${{ github.repository }}.git" build
+          $target = if ("${{ github.ref }}" -eq 'refs/heads/main') { 'build' } else { 'build-${{ github.ref_name }}' }
+          git push -f -q "https://x-access-token:$env:GH_TOKEN@github.com/${{ github.repository }}.git" "build:$target"
           Set-Location ..
+          if ("${{ github.ref }}" -ne 'refs/heads/main') { exit 0 }
           cmd /c "gh release delete ultima-versiune --yes --cleanup-tag 2>nul"
           gh release create ultima-versiune dist\RecuperareFisiere.exe dist\SanatatePC.exe dist\WiFiStabil.exe (Get-ChildItem dist\SanatatePC_Setup_*.exe).FullName (Get-ChildItem dist\SanatatePC_Portabil_*.zip).FullName --title "Ultima versiune ($sha)" --notes "Recuperare Fisiere, Sanatate PC si Wi-Fi Stabil - descarca fisierele .exe de mai jos." --latest
           if ($LASTEXITCODE -ne 0) { exit 1 }
