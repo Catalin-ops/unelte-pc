@@ -1,7 +1,7 @@
 # Construieste pachetele MSIX pentru Microsoft Store si testeaza instalarea + pornirea variantei fara administrator.
 $ErrorActionPreference = 'Stop'
 Set-Location (Split-Path $PSScriptRoot)
-$ver = '1.4.1.0'
+$ver = '1.4.2.0'
 $kit = Get-ChildItem 'C:\Program Files (x86)\Windows Kits\10\bin' -Directory | Where-Object { $_.Name -match '^10\.' } | Sort-Object Name -Descending |
     ForEach-Object { Join-Path $_.FullName 'x64' } | Where-Object { Test-Path (Join-Path $_ 'makeappx.exe') } | Select-Object -First 1
 if (-not $kit) { throw 'Nu gasesc makeappx.exe (Windows SDK)' }
@@ -32,8 +32,9 @@ function Pack($flavor, $exe, $extra) {
     Write-Host "Pachet: $out ($((Get-Item $out).Length) octeti)"
     return (Resolve-Path $out).Path
 }
-$pAdmin = Pack 'cu_administrator' 'SanatatePC.exe' "`n    <rescap:Capability Name=`"allowElevation`"/>"
-$pStd = Pack 'fara_administrator' 'SanatatePC_Store.exe' ''
+# Microsoft a respins capabilitatea restrictionata allowElevation (politica 10.6.3, 17.11.2026):
+# in Store trimitem DOAR pachetul fara administrator. Versiunea completa (SMART, TPM, citire suprafata) ramane cea portabila.
+$pStd = Pack 'store' 'SanatatePC_Store.exe' ''
 
 # test: semnam o COPIE cu un certificat de test (acelasi Publisher), o instalam si pornim aplicatia; pachetele pentru Store raman nesemnate
 if ($true) {
