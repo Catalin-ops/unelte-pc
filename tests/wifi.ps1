@@ -45,11 +45,12 @@ Write-Host "CSV: $((Get-Content $csv).Count) randuri"
 # 4. raport HTML si export CSV
 $R = $asm.GetType('InfoPcWifi.Report')
 $html = Join-Path (Get-Location).Path 'shots\wifi\raport_runner.html'
-$R.GetMethod('SaveHtml').Invoke($null, [object[]]@($html, $m, $snap, 'Test CI', $true)) | Out-Null
+$mo = $m.PSObject.BaseObject; $so = $snap.PSObject.BaseObject
+$R.GetMethod('SaveHtml').Invoke($null, [object[]]@([string]$html, $mo, $so, [string]'Test CI', $true)) | Out-Null
 $len = (Get-Item $html).Length
 Write-Host "Raport HTML: $len octeti"
 if ($len -lt 10000 -or (Get-Content $html -Raw) -match '/\*__DATA__\*/') { throw 'Raportul HTML nu a fost completat' }
-$R.GetMethod('SaveCsv').Invoke($null, [object[]]@((Join-Path $env:RUNNER_TEMP 'export.csv'), $snap, 1)) | Out-Null
+$R.GetMethod('SaveCsv').Invoke($null, [object[]]@([string](Join-Path $env:RUNNER_TEMP 'export.csv'), $so, [int]1)) | Out-Null
 
 # 5. capturi: date de demonstratie + test real pornit din aplicatie
 function Cap($file, $argsx, $size = '1600x1000') {

@@ -382,14 +382,17 @@ namespace InfoPcWifi
             }
             if (wifiUp != null) return wifiUp;
             if (wifiAny != null || w.Found) return wifiAny;
-            return wiredUp;   // calculator fara Wi-Fi: testam conexiunea pe cablu
+            if (wiredUp != null) return wiredUp;   // calculator fara Wi-Fi: testam conexiunea pe cablu
+            foreach (NetworkInterface n in all)
+                if (n.OperationalStatus == OperationalStatus.Up && n.NetworkInterfaceType != NetworkInterfaceType.Loopback && GatewayOf(n).Length > 0) return n;
+            return null;
         }
 
         static bool IsRealWired(NetworkInterface n)
         {
             if (n.NetworkInterfaceType != NetworkInterfaceType.Ethernet && n.NetworkInterfaceType != NetworkInterfaceType.GigabitEthernet) return false;
             string d = n.Description;
-            foreach (string x in new string[] { "Virtual", "VPN", "Hyper-V", "VMware", "VirtualBox", "TAP", "Bluetooth", "Loopback", "WAN Miniport" })
+            foreach (string x in new string[] { "Virtual", "VPN", "VMware", "VirtualBox", "TAP-", "Bluetooth", "Loopback", "WAN Miniport", "Npcap" })
                 if (d.IndexOf(x, StringComparison.OrdinalIgnoreCase) >= 0) return false;
             return true;
         }
