@@ -1,0 +1,21 @@
+name: Wi-Fi debug
+on:
+  push:
+    branches: [wifi-debug]
+jobs:
+  debug:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compilare
+        shell: powershell
+        run: ./build.ps1
+      - name: Test fereastra
+        shell: powershell
+        run: |
+          $env:WIFISTABIL_TRACE = "$env:RUNNER_TEMP\trace.txt"
+          $out = "$env:RUNNER_TEMP\p.png"
+          $p = Start-Process -FilePath (Resolve-Path dist\WiFiStabil.exe) -ArgumentList "--captura=$out", '--marime=1600x1000', '--porneste' -PassThru
+          if (-not $p.WaitForExit(60000)) { $p.Kill() }
+          if (Test-Path "$out.diag.txt") { Get-Content "$out.diag.txt" }
+          Get-Content $env:WIFISTABIL_TRACE -ErrorAction SilentlyContinue | Select-Object -First 80

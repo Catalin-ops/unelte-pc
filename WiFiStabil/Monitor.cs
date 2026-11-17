@@ -69,6 +69,12 @@ namespace InfoPcWifi
         public string StopReason = "";
         public string LastError = "";
         public volatile string Stage = "";
+        static readonly string TraceFile = Environment.GetEnvironmentVariable("WIFISTABIL_TRACE");
+        public static void Trace(string m)
+        {
+            if (string.IsNullOrEmpty(TraceFile)) return;
+            try { lock (TraceFile) File.AppendAllText(TraceFile, DateTime.Now.ToString("HH:mm:ss.fff") + " [" + Thread.CurrentThread.ManagedThreadId + "] " + m + Environment.NewLine); } catch (Exception) { }
+        }
 
         // ultimele valori (pentru afisare)
         public WifiInfo Wifi = new WifiInfo();
@@ -180,16 +186,16 @@ namespace InfoPcWifi
         // ------------------------------------------------------------ o masuratoare
         void Measure(DateTime now)
         {
-            Stage = "wlan";
+            Stage = "wlan"; Trace("wlan");
             WifiInfo w = Wlan.Query();
-            Stage = "placa";
+            Stage = "placa"; Trace("placa");
             NetworkInterface nic = PickNic(w);
             bool up = nic != null && nic.OperationalStatus == OperationalStatus.Up;
             string kind = nic != null && nic.NetworkInterfaceType == NetworkInterfaceType.Wireless80211 ? "Wi-Fi" : nic != null ? "Cablu" : "Wi-Fi";
             if (w.Found && w.Connected) up = true;
             string gw = GatewayOverride.Length > 0 ? GatewayOverride : GatewayOf(nic);
 
-            Stage = "ping";
+            Stage = "ping"; Trace("ping");
             Dictionary<string, int> p = new Dictionary<string, int>();
             if (up)
             {
@@ -211,7 +217,7 @@ namespace InfoPcWifi
             else if (gwEver) st = 2;
             else st = 1;
 
-            Stage = "salvare";
+            Stage = "salvare"; Trace("salvare");
             bool started = false;
             lock (sync)
             {
@@ -251,7 +257,7 @@ namespace InfoPcWifi
                 AdapterKind = kind;
             }
             if (started && IncidentStarted != null) { try { IncidentStarted(); } catch (Exception) { } }
-            Stage = "csv";
+            Stage = "csv"; Trace("csv");
 
             if (csv != null)
             {
@@ -266,7 +272,7 @@ namespace InfoPcWifi
                 catch (Exception) { }
             }
             if (samples.Count % 30 == 1) WiredAlso = HasWired(nic);
-            Stage = "gata";
+            Stage = "gata"; Trace("gata");
         }
 
         public event Action IncidentStarted;
@@ -447,9 +453,12 @@ namespace InfoPcWifi
                 {
                     try
                     {
+                        Trace("ping " + target + " incep");
                         using (Ping p = new Ping())
                         {
+                            Trace("ping " + target + " obiect creat");
                             PingReply r = p.Send(target, timeout);
+                            Trace("ping " + target + " raspuns " + (r == null ? "null" : r.Status.ToString()));
                             if (r != null && r.Status == IPStatus.Success) ms[k] = (int)r.RoundtripTime;
                         }
                     }
@@ -457,9 +466,12 @@ namespace InfoPcWifi
                     finally { try { done.Signal(); } catch (Exception) { } }
                 });
                 th.IsBackground = true;
+                Trace("pornesc firul pentru " + target);
                 th.Start();
             }
+            Trace("astept " + list.Count + " ping-uri");
             if (list.Count > 0) done.Wait(timeout + 800);
+            Trace("gata asteptarea");
             for (int i = 0; i < list.Count; i++) res[list[i]] = ms[i];
             return res;
         }
