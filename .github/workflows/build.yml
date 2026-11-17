@@ -37,6 +37,9 @@ jobs:
       - name: Pachete MSIX pentru Microsoft Store + test instalare
         shell: powershell
         run: ./tests/msix.ps1
+      - name: Wi-Fi Stabil (teste, capturi, pachet MSIX)
+        shell: powershell
+        run: ./tests/wifi.ps1
       - name: Capturi de ecran
         shell: powershell
         continue-on-error: true
@@ -65,6 +68,7 @@ jobs:
           if (Test-Path dist\store) { New-Item -ItemType Directory -Force out\msix | Out-Null; Copy-Item dist\store\*.msix out\msix\ }
           if (Test-Path shots\free) { New-Item -ItemType Directory -Force out\free | Out-Null; Copy-Item shots\free\* out\free\ }
           if (Test-Path shots) { Copy-Item shots\*.* out\ }
+          if (Test-Path shots\wifi) { New-Item -ItemType Directory -Force out\wifi | Out-Null; Copy-Item shots\wifi\* out\wifi\ }
           Set-Location out
           git init -q -b build
           git config user.name "github-actions"
@@ -74,5 +78,5 @@ jobs:
           git push -f -q "https://x-access-token:$env:GH_TOKEN@github.com/${{ github.repository }}.git" build
           Set-Location ..
           cmd /c "gh release delete ultima-versiune --yes --cleanup-tag 2>nul"
-          gh release create ultima-versiune dist\RecuperareFisiere.exe dist\SanatatePC.exe (Get-ChildItem dist\SanatatePC_Setup_*.exe).FullName (Get-ChildItem dist\SanatatePC_Portabil_*.zip).FullName --title "Ultima versiune ($sha)" --notes "Recuperare Fisiere si Sanatate PC - descarca fisierele .exe de mai jos." --latest
+          gh release create ultima-versiune dist\RecuperareFisiere.exe dist\SanatatePC.exe dist\WiFiStabil.exe (Get-ChildItem dist\SanatatePC_Setup_*.exe).FullName (Get-ChildItem dist\SanatatePC_Portabil_*.zip).FullName --title "Ultima versiune ($sha)" --notes "Recuperare Fisiere, Sanatate PC si Wi-Fi Stabil - descarca fisierele .exe de mai jos." --latest
           if ($LASTEXITCODE -ne 0) { exit 1 }

@@ -1,4 +1,4 @@
-// Generator Licente - Info PC Electric. Emite chei Pro pentru Sanatate PC (cheia privata e citita din fisier, nu e in cod).
+// Generator Licente - Info PC Electric. Emite chei Pro pentru Sanatate PC si Wi-Fi Stabil (cheia privata e citita din fisier, nu e in cod).
 using System;
 using System.IO;
 using System.Reflection;
@@ -56,17 +56,23 @@ namespace InfoPcKeygen
             {
                 if (lastKey == null) return;
                 Microsoft.Win32.SaveFileDialog d = new Microsoft.Win32.SaveFileDialog();
+                SetProduct();
                 d.FileName = Licensing.FileName;
-                d.Filter = "Licență (*.spc)|*.spc";
+                d.Filter = "Licență (*" + Path.GetExtension(Licensing.FileName) + ")|*" + Path.GetExtension(Licensing.FileName);
                 if (d.ShowDialog(win) == true) File.WriteAllText(d.FileName, lastKey + Environment.NewLine, new UTF8Encoding(false));
             };
         }
+
+        bool Wifi { get { RadioButton r = F<RadioButton>("ProdWfs"); return r != null && r.IsChecked == true; } }
+        string ProductName() { return Wifi ? "Wi-Fi Stabil" : "Sănătate PC"; }
+        void SetProduct() { if (Wifi) Licensing.UseWifiStabil(); else Licensing.UseSanatatePC(); }
 
         void SetKey(string text, string path)
         {
             try
             {
                 // test: semneaza si verifica o cheie de proba
+                Licensing.UseSanatatePC();
                 string test = Licensing.Create(text, "test", "", DateTime.Today, DateTime.Today.AddDays(1), 1);
                 if (!Licensing.Parse(test).Valid) throw new Exception("Cheia privată nu corespunde aplicației Sănătate PC.");
                 priv = text.Trim();
@@ -87,12 +93,13 @@ namespace InfoPcKeygen
             DateTime? exp = null;
             if (F<RadioButton>("Y1").IsChecked == true) exp = DateTime.Today.AddYears(1);
             else if (F<RadioButton>("M1").IsChecked == true) exp = DateTime.Today.AddMonths(1);
+            SetProduct();
             string key = Licensing.Create(priv, name, email, DateTime.Today, exp, 1);
             License l = Licensing.Parse(key);
             if (!l.IsPro) { MessageBox.Show("Verificarea cheii a eșuat: " + l.Error, "Generator Licențe"); return; }
             lastKey = key; lastName = name;
             F<TextBox>("OutBox").Text = key;
-            F<TextBlock>("OutInfo").Text = "Licență Pro pentru " + name + " — valabilă până la " + l.ExpiresText;
+            F<TextBlock>("OutInfo").Text = ProductName() + " Pro pentru " + name + " — valabilă până la " + l.ExpiresText;
             F<Border>("OutCard").Visibility = Visibility.Visible;
             try
             {
@@ -100,8 +107,8 @@ namespace InfoPcKeygen
                 bool head = !File.Exists(log);
                 using (StreamWriter w = new StreamWriter(log, true, new UTF8Encoding(true)))
                 {
-                    if (head) w.WriteLine("Data;Client;Email;Expira;Cheie");
-                    w.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm") + ";" + name.Replace(";", ",") + ";" + email.Replace(";", ",") + ";" + l.ExpiresText + ";" + key);
+                    if (head) w.WriteLine("Data;Client;Email;Expira;Cheie;Aplicatie");
+                    w.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm") + ";" + name.Replace(";", ",") + ";" + email.Replace(";", ",") + ";" + l.ExpiresText + ";" + key + ";" + ProductName());
                 }
             }
             catch (Exception) { }

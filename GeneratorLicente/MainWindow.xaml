@@ -1,6 +1,6 @@
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Generator Licențe — Sănătate PC" Width="720" Height="720" MinWidth="620" MinHeight="600"
+        Title="Generator Licențe — Info PC Electric" Width="720" Height="720" MinWidth="620" MinHeight="600"
         WindowStartupLocation="CenterScreen" Background="#0E131F" FontFamily="Segoe UI" Foreground="#E6EAF2"
         TextOptions.TextFormattingMode="Display" UseLayoutRounding="True">
   <Window.Resources>
@@ -47,7 +47,7 @@
   <ScrollViewer VerticalScrollBarVisibility="Auto">
     <StackPanel Margin="28,24">
       <TextBlock Text="Generator Licențe" FontSize="22" FontWeight="Bold"/>
-      <TextBlock Text="Emite chei Pro pentru Sănătate PC. Păstrează acest program și cheia privată doar la tine." FontSize="12.5" Foreground="#8A96B0" TextWrapping="Wrap" Margin="0,3,0,0"/>
+      <TextBlock Text="Emite chei Pro pentru Sănătate PC și Wi-Fi Stabil. O cheie merge doar la aplicația pentru care a fost emisă. Păstrează acest program și cheia privată doar la tine." FontSize="12.5" Foreground="#8A96B0" TextWrapping="Wrap" Margin="0,3,0,0"/>
 
       <Border Background="#151C2C" BorderBrush="#24304A" BorderThickness="1" CornerRadius="14" Padding="18" Margin="0,18,0,0">
         <StackPanel>
@@ -59,7 +59,12 @@
 
       <Border Background="#151C2C" BorderBrush="#24304A" BorderThickness="1" CornerRadius="14" Padding="18" Margin="0,14,0,0">
         <StackPanel>
-          <TextBlock Text="Numele clientului (apare în aplicație și pe rapoarte)" Style="{StaticResource Lbl}" Margin="0,0,0,4"/>
+          <TextBlock Text="Aplicația" Style="{StaticResource Lbl}" Margin="0,0,0,4"/>
+          <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+            <RadioButton x:Name="ProdSpc" Content="Sănătate PC" IsChecked="True" GroupName="p"/>
+            <RadioButton x:Name="ProdWfs" Content="Wi-Fi Stabil" GroupName="p"/>
+          </StackPanel>
+          <TextBlock Text="Numele clientului (apare în aplicație și pe rapoarte)" Style="{StaticResource Lbl}"/>
           <TextBox x:Name="NameBox"/>
           <TextBlock Text="Email client" Style="{StaticResource Lbl}"/>
           <TextBox x:Name="EmailBox"/>
@@ -79,9 +84,9 @@
           <TextBox x:Name="OutBox" IsReadOnly="True" TextWrapping="Wrap" Height="90" Margin="0,10,0,0" FontFamily="Consolas" FontSize="12.5"/>
           <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
             <Button x:Name="CopyBtn" Content="Copiază cheia" Margin="0,0,10,0"/>
-            <Button x:Name="SaveBtn" Content="Salvează licenta.spc…"/>
+            <Button x:Name="SaveBtn" Content="Salvează fișierul licență…"/>
           </StackPanel>
-          <TextBlock Text="Trimite clientului fie cheia (o lipește în aplicație la „Activează Pro”), fie fișierul licenta.spc (îl pune lângă SanatatePC.exe pe stick)." FontSize="12" Foreground="#8A96B0" TextWrapping="Wrap" Margin="0,10,0,0"/>
+          <TextBlock Text="Trimite clientului fie cheia (o lipește în aplicație la „Activează Pro”), fie fișierul licență (licenta.spc lângă SanatatePC.exe, licenta.wfs lângă WiFiStabil.exe, pe stick)." FontSize="12" Foreground="#8A96B0" TextWrapping="Wrap" Margin="0,10,0,0"/>
         </StackPanel>
       </Border>
     </StackPanel>

@@ -38,9 +38,22 @@ namespace InfoPcDisk
     {
         // Cheia PUBLICA (verificare). Cheia privata ramane doar la emitent, in afara codului sursa.
         const string PublicKeyB64 = "RUNTMSAAAACILgm57+3G2OkOy2+T5+r80fZJRNT3YxEMsPQrvswynIgE8VE8p0XfFDvGdnvTnDx7v5rYon4nmsCb1K3XP82b";
-        public const string FileName = "licenta.spc";
-        public const string Prefix = "SPC1.";
+        // produsul: Sanatate PC (implicit) sau Wi-Fi Stabil. Versiunea cheii e semnata, deci o cheie nu merge la celalalt produs.
+        public static string FileName = "licenta.spc";
+        public static string Prefix = "SPC1.";
+        public static string AppFolder = "SanatatePC";
+        public static byte KeyVersion = 1;
         static readonly DateTime Epoch = new DateTime(2024, 1, 1);
+
+        public static void UseWifiStabil()
+        {
+            FileName = "licenta.wfs"; Prefix = "WFS1."; AppFolder = "WiFiStabil"; KeyVersion = 2;
+        }
+
+        public static void UseSanatatePC()
+        {
+            FileName = "licenta.spc"; Prefix = "SPC1."; AppFolder = "SanatatePC"; KeyVersion = 1;
+        }
 
         public static string ExeDir
         {
@@ -49,7 +62,7 @@ namespace InfoPcDisk
 
         public static string AppDataDir
         {
-            get { return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "InfoPC", "SanatatePC"); }
+            get { return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "InfoPC", AppFolder); }
         }
 
         // aplicatia e instalata (Program Files / Microsoft Store), nu portabila?
@@ -124,7 +137,7 @@ namespace InfoPcDisk
                     if (!dsa.VerifyData(payload, sig)) { l.Error = "Cheia nu este validă (semnătură greșită)."; return l; }
                 }
 
-                if (payload[0] != 1) { l.Error = "Versiune de cheie necunoscută."; return l; }
+                if (payload[0] != KeyVersion) { l.Error = "Cheia este pentru alt program."; return l; }
                 l.Tier = payload[1];
                 int issue = BitConverter.ToUInt16(payload, 2), exp = BitConverter.ToUInt16(payload, 4);
                 l.Issued = Epoch.AddDays(issue);
@@ -283,7 +296,7 @@ namespace InfoPcDisk
             if (n.Length > 120 || e.Length > 120) throw new ArgumentException("Numele sau emailul e prea lung.");
             using (MemoryStream ms = new MemoryStream())
             {
-                ms.WriteByte(1);
+                ms.WriteByte(KeyVersion);
                 ms.WriteByte((byte)tier);
                 ms.Write(BitConverter.GetBytes((ushort)(issued.Date - Epoch).TotalDays), 0, 2);
                 ushort ex = expires.HasValue ? (ushort)(expires.Value.Date - Epoch).TotalDays : (ushort)0xFFFF;

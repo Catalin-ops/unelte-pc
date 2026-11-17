@@ -1,0 +1,404 @@
+<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Wi-Fi Stabil — Info PC Electric" Width="1320" Height="840" MinWidth="1060" MinHeight="680"
+        WindowStartupLocation="CenterScreen" Background="#0E131F" FontFamily="Segoe UI" Foreground="#E6EAF2"
+        TextOptions.TextFormattingMode="Display" UseLayoutRounding="True">
+  <Window.Resources>
+    <SolidColorBrush x:Key="Muted" Color="#8A96B0"/>
+    <Style x:Key="Card" TargetType="Border">
+      <Setter Property="Background" Value="#151C2C"/>
+      <Setter Property="BorderBrush" Value="#24304A"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="16"/>
+      <Setter Property="Padding" Value="18"/>
+    </Style>
+    <Style x:Key="Tile" TargetType="Border">
+      <Setter Property="Background" Value="#151C2C"/>
+      <Setter Property="BorderBrush" Value="#24304A"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="14"/>
+      <Setter Property="Padding" Value="14,12"/>
+      <Setter Property="Margin" Value="0,0,10,0"/>
+    </Style>
+    <Style x:Key="TileLabel" TargetType="TextBlock">
+      <Setter Property="FontSize" Value="11"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Foreground" Value="{StaticResource Muted}"/>
+    </Style>
+    <Style x:Key="TileValue" TargetType="TextBlock">
+      <Setter Property="FontSize" Value="22"/>
+      <Setter Property="FontWeight" Value="Bold"/>
+      <Setter Property="Margin" Value="0,4,0,1"/>
+    </Style>
+    <Style x:Key="TileSub" TargetType="TextBlock">
+      <Setter Property="FontSize" Value="11.5"/>
+      <Setter Property="Foreground" Value="{StaticResource Muted}"/>
+      <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+    </Style>
+    <Style x:Key="H2" TargetType="TextBlock">
+      <Setter Property="FontSize" Value="14.5"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Margin" Value="0,0,0,10"/>
+    </Style>
+    <Style x:Key="Key" TargetType="TextBlock">
+      <Setter Property="FontSize" Value="12.5"/>
+      <Setter Property="Foreground" Value="{StaticResource Muted}"/>
+      <Setter Property="Margin" Value="0,3,12,3"/>
+    </Style>
+    <Style x:Key="Val" TargetType="TextBlock">
+      <Setter Property="FontSize" Value="12.5"/>
+      <Setter Property="Margin" Value="0,3,0,3"/>
+      <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+    </Style>
+    <Style x:Key="Ghost" TargetType="Button">
+      <Setter Property="Foreground" Value="#E6EAF2"/>
+      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="Height" Value="38"/>
+      <Setter Property="Margin" Value="0,0,8,0"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Border x:Name="Bd" CornerRadius="10" Padding="14,0" Background="#1B2436" BorderBrush="#2C3A57" BorderThickness="1">
+              <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Bd" Property="BorderBrush" Value="#3B82F6"/></Trigger>
+              <Trigger Property="IsEnabled" Value="False"><Setter TargetName="Bd" Property="Opacity" Value="0.4"/></Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style x:Key="Primary" TargetType="Button">
+      <Setter Property="Foreground" Value="White"/>
+      <Setter Property="FontSize" Value="13.5"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="Height" Value="40"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Border x:Name="Bd" CornerRadius="10" Padding="18,0">
+              <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                  <GradientStop Color="#2563EB" Offset="0"/><GradientStop Color="#0891B2" Offset="1"/>
+                </LinearGradientBrush>
+              </Border.Background>
+              <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Bd" Property="Opacity" Value="0.88"/></Trigger>
+              <Trigger Property="IsEnabled" Value="False"><Setter TargetName="Bd" Property="Opacity" Value="0.4"/></Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style x:Key="Big" TargetType="Button">
+      <Setter Property="Foreground" Value="White"/>
+      <Setter Property="FontSize" Value="15"/>
+      <Setter Property="FontWeight" Value="Bold"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="Height" Value="48"/>
+      <Setter Property="Background" Value="#16A34A"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Border x:Name="Bd" CornerRadius="12" Background="{TemplateBinding Background}">
+              <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Bd" Property="Opacity" Value="0.88"/></Trigger>
+              <Trigger Property="IsEnabled" Value="False"><Setter TargetName="Bd" Property="Opacity" Value="0.4"/></Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style x:Key="Chip" TargetType="RadioButton">
+      <Setter Property="Foreground" Value="#C7CFDF"/>
+      <Setter Property="FontSize" Value="12.5"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="Margin" Value="0,0,6,6"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="RadioButton">
+            <Border x:Name="Bd" CornerRadius="14" Padding="11,5" Background="#1B2436" BorderBrush="#2C3A57" BorderThickness="1">
+              <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsChecked" Value="True">
+                <Setter TargetName="Bd" Property="Background" Value="#2563EB"/>
+                <Setter TargetName="Bd" Property="BorderBrush" Value="#3B82F6"/>
+                <Setter Property="Foreground" Value="White"/>
+              </Trigger>
+              <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Bd" Property="BorderBrush" Value="#3B82F6"/></Trigger>
+              <Trigger Property="IsEnabled" Value="False"><Setter TargetName="Bd" Property="Opacity" Value="0.45"/></Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style TargetType="CheckBox">
+      <Setter Property="Foreground" Value="#C7CFDF"/>
+      <Setter Property="FontSize" Value="12.5"/>
+    </Style>
+    <DataTemplate x:Key="IncTpl">
+      <Border Background="#111827" CornerRadius="10" Padding="12,8" Margin="0,0,0,6">
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="14"/><ColumnDefinition Width="130"/><ColumnDefinition Width="80"/><ColumnDefinition Width="*"/>
+          </Grid.ColumnDefinitions>
+          <Ellipse Width="9" Height="9" Fill="{Binding Color}" VerticalAlignment="Center" HorizontalAlignment="Left"/>
+          <TextBlock Grid.Column="1" FontSize="12.5"><Run Text="{Binding StartText, Mode=OneWay}"/><Run Text=" – " Foreground="#64748B"/><Run Text="{Binding EndText, Mode=OneWay}"/></TextBlock>
+          <TextBlock Grid.Column="2" Text="{Binding DurText}" FontSize="12.5" FontWeight="SemiBold"/>
+          <TextBlock Grid.Column="3" Text="{Binding TypeName}" FontSize="12.5" Foreground="#C7CFDF" TextTrimming="CharacterEllipsis"/>
+        </Grid>
+      </Border>
+    </DataTemplate>
+    <DataTemplate x:Key="EvTpl">
+      <Grid Margin="0,0,0,7">
+        <Grid.ColumnDefinitions><ColumnDefinition Width="64"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+        <TextBlock Text="{Binding TimeText}" FontSize="12" Foreground="#8A96B0"/>
+        <TextBlock Grid.Column="1" Text="{Binding Text}" FontSize="12" TextWrapping="Wrap"/>
+      </Grid>
+    </DataTemplate>
+  </Window.Resources>
+
+  <Grid Margin="22,18,22,18">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+    </Grid.RowDefinitions>
+
+    <!-- antet -->
+    <Grid Margin="0,0,0,16">
+      <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+      <Border Width="44" Height="44" CornerRadius="12" Margin="0,0,14,0">
+        <Border.Background>
+          <LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#2563EB" Offset="0"/><GradientStop Color="#0891B2" Offset="1"/></LinearGradientBrush>
+        </Border.Background>
+        <TextBlock Text="&#xE701;" FontFamily="Segoe MDL2 Assets" FontSize="22" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+      </Border>
+      <StackPanel Grid.Column="1" VerticalAlignment="Center">
+        <TextBlock Text="Wi-Fi Stabil" FontSize="21" FontWeight="Bold"/>
+        <TextBlock Text="Lasă calculatorul pornit și vezi dacă rețeaua cade, cât timp și din ce cauză" FontSize="12.5" Foreground="{StaticResource Muted}"/>
+      </StackPanel>
+      <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+        <Border x:Name="LicBadge" CornerRadius="10" Padding="12,7" Background="#1E293B" VerticalAlignment="Center" Cursor="Hand">
+          <StackPanel>
+            <TextBlock x:Name="LicTitle" Text="Versiunea Free" FontSize="12.5" FontWeight="Bold" Foreground="#94A3B8"/>
+            <TextBlock x:Name="LicSub" Text="Teste de până la 1 oră" FontSize="11" Foreground="#8A96B0"/>
+          </StackPanel>
+        </Border>
+        <Button x:Name="ProBtn" Style="{StaticResource Primary}" Margin="10,0,0,0">
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Text="&#xE735;" FontFamily="Segoe MDL2 Assets" Margin="0,2,8,0"/>
+            <TextBlock Text="Activează Pro"/>
+          </StackPanel>
+        </Button>
+      </StackPanel>
+    </Grid>
+
+    <Grid Grid.Row="1">
+      <Grid.ColumnDefinitions><ColumnDefinition Width="330"/><ColumnDefinition Width="18"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+
+      <!-- coloana stanga -->
+      <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel>
+          <Border Style="{StaticResource Card}" Padding="18,22">
+            <StackPanel>
+              <Grid Width="176" Height="176" HorizontalAlignment="Center">
+                <Ellipse x:Name="StateRing" Stroke="#334155" StrokeThickness="10"/>
+                <Ellipse x:Name="StateGlow" Margin="18" Fill="#1E293B" Opacity="0.55"/>
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="22,0">
+                  <TextBlock x:Name="StateIcon" Text="&#xE701;" FontFamily="Segoe MDL2 Assets" FontSize="34" HorizontalAlignment="Center" Foreground="#94A3B8"/>
+                  <TextBlock x:Name="StateText" Text="Pregătit" FontSize="17" FontWeight="Bold" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" Margin="0,6,0,0"/>
+                  <TextBlock x:Name="StateSub" Text="apasă Pornește testul" FontSize="11.5" Foreground="{StaticResource Muted}" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"/>
+                </StackPanel>
+              </Grid>
+              <Grid Margin="0,18,0,0">
+                <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
+                <StackPanel>
+                  <TextBlock Text="RULEAZĂ DE" Style="{StaticResource TileLabel}"/>
+                  <TextBlock x:Name="ElapsedText" Text="—" FontSize="18" FontWeight="Bold" Margin="0,3,0,0"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1">
+                  <TextBlock x:Name="RemainLabel" Text="MAI RĂMÂN" Style="{StaticResource TileLabel}"/>
+                  <TextBlock x:Name="RemainText" Text="—" FontSize="18" FontWeight="Bold" Margin="0,3,0,0"/>
+                </StackPanel>
+              </Grid>
+            </StackPanel>
+          </Border>
+
+          <Border Style="{StaticResource Card}" Margin="0,14,0,0">
+            <StackPanel>
+              <TextBlock Text="Durata testului" Style="{StaticResource H2}"/>
+              <WrapPanel x:Name="DurPanel">
+                <RadioButton Style="{StaticResource Chip}" GroupName="dur" Tag="15" Content="15 min"/>
+                <RadioButton Style="{StaticResource Chip}" GroupName="dur" Tag="60" Content="1 oră" IsChecked="True"/>
+                <RadioButton Style="{StaticResource Chip}" GroupName="dur" Tag="240" Content="4 ore · Pro"/>
+                <RadioButton Style="{StaticResource Chip}" GroupName="dur" Tag="480" Content="8 ore · Pro"/>
+                <RadioButton Style="{StaticResource Chip}" GroupName="dur" Tag="0" Content="Până opresc eu · Pro"/>
+              </WrapPanel>
+              <CheckBox x:Name="BeepBox" Content="Sunet la fiecare cădere" Margin="0,6,0,0"/>
+              <Button x:Name="StartBtn" Style="{StaticResource Big}" Margin="0,14,0,0">
+                <StackPanel Orientation="Horizontal">
+                  <TextBlock x:Name="StartIcon" Text="&#xE768;" FontFamily="Segoe MDL2 Assets" Margin="0,2,10,0"/>
+                  <TextBlock x:Name="StartLabel" Text="Pornește testul"/>
+                </StackPanel>
+              </Button>
+              <TextBlock Text="Cât rulează testul, calculatorul nu intră în repaus. La laptop ține capacul deschis și încărcătorul conectat."
+                         FontSize="11.5" Foreground="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,10,0,0"/>
+            </StackPanel>
+          </Border>
+
+          <Border Style="{StaticResource Card}" Margin="0,14,0,0">
+            <StackPanel>
+              <TextBlock Text="Rețeaua" Style="{StaticResource H2}"/>
+              <Grid>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                  <RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/>
+                </Grid.RowDefinitions>
+                <TextBlock Text="Nume rețea" Style="{StaticResource Key}"/>
+                <TextBlock x:Name="SsidText" Grid.Column="1" Text="—" Style="{StaticResource Val}" FontWeight="SemiBold"/>
+                <TextBlock Grid.Row="1" Text="Punct de acces" Style="{StaticResource Key}"/>
+                <TextBlock x:Name="BssidText" Grid.Row="1" Grid.Column="1" Text="—" Style="{StaticResource Val}"/>
+                <TextBlock Grid.Row="2" Text="Canal / bandă" Style="{StaticResource Key}"/>
+                <TextBlock x:Name="ChanText" Grid.Row="2" Grid.Column="1" Text="—" Style="{StaticResource Val}"/>
+                <TextBlock Grid.Row="3" Text="Standard" Style="{StaticResource Key}"/>
+                <TextBlock x:Name="PhyText" Grid.Row="3" Grid.Column="1" Text="—" Style="{StaticResource Val}"/>
+                <TextBlock Grid.Row="4" Text="Viteză legătură" Style="{StaticResource Key}"/>
+                <TextBlock x:Name="RateText" Grid.Row="4" Grid.Column="1" Text="—" Style="{StaticResource Val}"/>
+                <TextBlock Grid.Row="5" Text="Router" Style="{StaticResource Key}"/>
+                <TextBlock x:Name="GwText" Grid.Row="5" Grid.Column="1" Text="—" Style="{StaticResource Val}"/>
+                <TextBlock Grid.Row="6" Text="Placă" Style="{StaticResource Key}"/>
+                <TextBlock x:Name="AdapterText" Grid.Row="6" Grid.Column="1" Text="—" Style="{StaticResource Val}" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+              </Grid>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </ScrollViewer>
+
+      <!-- coloana dreapta -->
+      <Grid Grid.Column="2">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="*" MinHeight="240"/>
+          <RowDefinition Height="230"/>
+        </Grid.RowDefinitions>
+
+        <UniformGrid Columns="6" Margin="0,0,-10,0">
+          <Border Style="{StaticResource Tile}">
+            <StackPanel>
+              <TextBlock Text="DISPONIBILITATE" Style="{StaticResource TileLabel}"/>
+              <TextBlock x:Name="AvailText" Text="—" Style="{StaticResource TileValue}"/>
+              <TextBlock x:Name="AvailSub" Text="din timpul testului" Style="{StaticResource TileSub}"/>
+            </StackPanel>
+          </Border>
+          <Border Style="{StaticResource Tile}">
+            <StackPanel>
+              <TextBlock Text="ÎNTRERUPERI" Style="{StaticResource TileLabel}"/>
+              <TextBlock x:Name="IncText" Text="—" Style="{StaticResource TileValue}"/>
+              <TextBlock x:Name="IncSub" Text="de 3 secunde sau mai mult" Style="{StaticResource TileSub}"/>
+            </StackPanel>
+          </Border>
+          <Border Style="{StaticResource Tile}">
+            <StackPanel>
+              <TextBlock Text="CEA MAI LUNGĂ" Style="{StaticResource TileLabel}"/>
+              <TextBlock x:Name="LongText" Text="—" Style="{StaticResource TileValue}"/>
+              <TextBlock x:Name="LongSub" Text="fără conexiune" Style="{StaticResource TileSub}"/>
+            </StackPanel>
+          </Border>
+          <Border Style="{StaticResource Tile}">
+            <StackPanel>
+              <TextBlock Text="SEMNAL" Style="{StaticResource TileLabel}"/>
+              <TextBlock x:Name="SigText" Text="—" Style="{StaticResource TileValue}"/>
+              <TextBlock x:Name="SigSub" Text="" Style="{StaticResource TileSub}"/>
+            </StackPanel>
+          </Border>
+          <Border Style="{StaticResource Tile}">
+            <StackPanel>
+              <TextBlock Text="PING INTERNET" Style="{StaticResource TileLabel}"/>
+              <TextBlock x:Name="NetText" Text="—" Style="{StaticResource TileValue}"/>
+              <TextBlock x:Name="NetSub" Text="1.1.1.1 · 8.8.8.8" Style="{StaticResource TileSub}"/>
+            </StackPanel>
+          </Border>
+          <Border Style="{StaticResource Tile}">
+            <StackPanel>
+              <TextBlock Text="PING ROUTER" Style="{StaticResource TileLabel}"/>
+              <TextBlock x:Name="RouterText" Text="—" Style="{StaticResource TileValue}"/>
+              <TextBlock x:Name="RouterSub" Text="" Style="{StaticResource TileSub}"/>
+            </StackPanel>
+          </Border>
+        </UniformGrid>
+
+        <StackPanel Grid.Row="1" x:Name="Banners" Margin="0,12,0,0">
+          <Border x:Name="VerdictBox" CornerRadius="12" Padding="14,10" Background="#0B2A1F" BorderThickness="0" Visibility="Collapsed" Margin="0,0,0,8">
+            <StackPanel>
+              <TextBlock x:Name="VerdictTitle" FontWeight="Bold" FontSize="14"/>
+              <TextBlock x:Name="VerdictText" FontSize="12.5" Foreground="#C7CFDF" TextWrapping="Wrap" Margin="0,3,0,0"/>
+            </StackPanel>
+          </Border>
+          <Border x:Name="WarnBox" CornerRadius="12" Padding="14,9" Background="#2A2210" Visibility="Collapsed" Margin="0,0,0,8">
+            <TextBlock x:Name="WarnText" FontSize="12.5" Foreground="#FCD34D" TextWrapping="Wrap"/>
+          </Border>
+          <Border x:Name="FreeBanner" CornerRadius="12" Padding="14,9" Background="#172554" Cursor="Hand" Margin="0,0,0,8">
+            <TextBlock FontSize="12.5" Foreground="#BFDBFE" TextWrapping="Wrap">
+              <Run FontWeight="Bold" Text="Versiunea Free:"/><Run Text=" teste de până la 1 oră. Cu Pro lași testul toată noaptea, salvezi raportul cu grafice pentru client și exporți măsurătorile în Excel. "/><Run Text="Activează Pro ›" FontWeight="SemiBold" Foreground="White"/>
+            </TextBlock>
+          </Border>
+        </StackPanel>
+
+        <Border Grid.Row="2" Style="{StaticResource Card}" Padding="14,14,18,10" Margin="0,4,0,0">
+          <Border x:Name="ChartHost"/>
+        </Border>
+
+        <Grid Grid.Row="3" Margin="0,14,0,0">
+          <Grid.ColumnDefinitions><ColumnDefinition Width="3*"/><ColumnDefinition Width="14"/><ColumnDefinition Width="2*"/></Grid.ColumnDefinitions>
+          <Border Style="{StaticResource Card}" Padding="16,14">
+            <Grid>
+              <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+              <Grid>
+                <TextBlock Text="Întreruperi" Style="{StaticResource H2}"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-6,0,0">
+                  <Button x:Name="ReportBtn" Style="{StaticResource Ghost}" Height="32" ToolTip="Raport HTML cu grafice și concluzie, pentru client (Pro)">
+                    <StackPanel Orientation="Horizontal"><TextBlock Text="&#xE9F9;" FontFamily="Segoe MDL2 Assets" Margin="0,2,7,0"/><TextBlock Text="Raport"/></StackPanel>
+                  </Button>
+                  <Button x:Name="CsvBtn" Style="{StaticResource Ghost}" Height="32" ToolTip="Toate măsurătorile, pentru Excel (Pro)">
+                    <StackPanel Orientation="Horizontal"><TextBlock Text="&#xE9F5;" FontFamily="Segoe MDL2 Assets" Margin="0,2,7,0"/><TextBlock Text="Excel"/></StackPanel>
+                  </Button>
+                  <Button x:Name="FolderBtn" Style="{StaticResource Ghost}" Height="32" Margin="0" ToolTip="Folderul cu testele salvate">
+                    <TextBlock Text="&#xE838;" FontFamily="Segoe MDL2 Assets"/>
+                  </Button>
+                </StackPanel>
+              </Grid>
+              <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                  <ItemsControl x:Name="IncList" ItemTemplate="{StaticResource IncTpl}"/>
+                  <TextBlock x:Name="IncEmpty" Text="Nicio întrerupere până acum." Foreground="{StaticResource Muted}" FontSize="12.5"/>
+                </StackPanel>
+              </ScrollViewer>
+            </Grid>
+          </Border>
+          <Border Grid.Column="2" Style="{StaticResource Card}" Padding="16,14">
+            <Grid>
+              <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+              <TextBlock Text="Evenimente" Style="{StaticResource H2}"/>
+              <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                  <ItemsControl x:Name="EvList" ItemTemplate="{StaticResource EvTpl}"/>
+                  <TextBlock x:Name="EvEmpty" Text="Schimbările de punct de acces, de rețea sau pauzele în măsurare apar aici." Foreground="{StaticResource Muted}" FontSize="12" TextWrapping="Wrap"/>
+                </StackPanel>
+              </ScrollViewer>
+            </Grid>
+          </Border>
+        </Grid>
+      </Grid>
+    </Grid>
+  </Grid>
+</Window>

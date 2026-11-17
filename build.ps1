@@ -1,4 +1,4 @@
-# Construieste RecuperareFisiere.exe, SanatatePC.exe si GeneratorLicente.exe cu compilatorul C# inclus in Windows (.NET Framework 4.x).
+# Construieste RecuperareFisiere.exe, SanatatePC.exe, WiFiStabil.exe si GeneratorLicente.exe cu compilatorul C# inclus in Windows (.NET Framework 4.x).
 $ErrorActionPreference = 'Stop'
 Set-Location $PSScriptRoot
 $fw = Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319'
@@ -15,7 +15,7 @@ function Build($name, $folder, $icon, $manifest, $extra) {
     Write-Host "== $name"
     $src = @(Get-ChildItem "$folder\*.cs" | ForEach-Object { $_.FullName })
     if ($extra) { $src += @($extra) }
-    $res = @(Get-ChildItem "$folder\*.xaml" | ForEach-Object { "/resource:$($_.FullName),$($_.Name)" })
+    $res = @(Get-ChildItem "$folder\*.xaml", "$folder\*.html" | ForEach-Object { "/resource:$($_.FullName),$($_.Name)" })
     & $csc /nologo /target:winexe /optimize+ /unsafe /codepage:65001 /platform:anycpu `
         "/out:dist\$name.exe" "/win32manifest:assets\$manifest" "/win32icon:assets\$icon" `
         @res @refs @src
@@ -26,5 +26,6 @@ Build 'RecuperareFisiere' 'RecuperareFisiere' 'recuperare.ico' 'app.manifest' @(
 Build 'SanatatePC' 'SanatatePC' 'sanatate.ico' 'app.manifest' @()
 # varianta pentru Microsoft Store (MSIX): porneste fara cerere de administrator
 Build 'SanatatePC_Store' 'SanatatePC' 'sanatate.ico' 'app_user.manifest' @()
+Build 'WiFiStabil' 'WiFiStabil' 'wifi.ico' 'app_user.manifest' @((Resolve-Path 'SanatatePC\Licenta.cs').Path)
 Build 'GeneratorLicente' 'GeneratorLicente' 'sanatate.ico' 'app_user.manifest' @((Resolve-Path 'SanatatePC\Licenta.cs').Path)
 Get-ChildItem dist
