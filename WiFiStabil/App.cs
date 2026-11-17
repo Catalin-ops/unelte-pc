@@ -165,7 +165,9 @@ namespace InfoPcWifi
             if (!demo) mon.Wifi = w;
             if (!w.Found && !demo) ShowWarn("Nu am găsit o placă Wi-Fi pe acest calculator. Testul verifică atunci conexiunea pe cablu.", null);
             Refresh();
-            if (Arg("captura") != null) win.ContentRendered += delegate { CaptureAndExit(); };
+            // o singura data: la randarea capturii fereastra isi schimba continutul si ContentRendered vine din nou
+            bool captureStarted = false;
+            if (Arg("captura") != null) win.ContentRendered += delegate { if (captureStarted) return; captureStarted = true; CaptureAndExit(); };
         }
 
         static int Minutes(RadioButton r) { int m; int.TryParse(r.Tag as string, out m); return m; }
