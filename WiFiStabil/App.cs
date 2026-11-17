@@ -192,6 +192,7 @@ namespace InfoPcWifi
         // ------------------------------------------------------------ test
         void StartTest()
         {
+            Monitor.Trace("StartTest");
             int min = SelectedMinutes();
             if (!Pro && (min == 0 || min > FreeMinutes)) { min = FreeMinutes; SelectMinutes(FreeMinutes); }
             mon = new Monitor();
@@ -569,12 +570,13 @@ namespace InfoPcWifi
             string m = Arg("marime");
             if (!string.IsNullOrEmpty(m)) { string[] p = m.Split('x'); int.TryParse(p[0], out w); if (p.Length > 1) int.TryParse(p[1], out h); }
             int wait = 3;
-            if (Arg("porneste") != null) { StartTest(); wait = 14; }
+            if (Arg("porneste") != null) { StartTest(); wait = 14; Monitor.Trace("StartTest din captura, monitor " + mon.GetHashCode()); }
             DispatcherTimer t = new DispatcherTimer();
             t.Interval = TimeSpan.FromSeconds(wait);
             t.Tick += delegate
             {
                 t.Stop();
+                Monitor.Trace("captura acum, monitor " + mon.GetHashCode() + ", masuratori " + mon.Snap(false).Total);
                 try
                 {
                     Refresh();
@@ -602,7 +604,7 @@ namespace InfoPcWifi
                     enc.Frames.Add(BitmapFrame.Create(rtb));
                     using (FileStream fs = File.Create(file)) enc.Save(fs);
                     if (mon.LastError.Length > 0 || (Arg("porneste") != null && mon.Snap(false).Total == 0))
-                        File.WriteAllText(file + ".diag.txt", "Masuratori: " + mon.Snap(false).Total + "\r\nRunning: " + mon.Running + "\r\nEtapa: " + mon.Stage + "\r\n" + mon.LastError);
+                        File.WriteAllText(file + ".diag.txt", "Masuratori: " + mon.Snap(false).Total + " monitor " + mon.GetHashCode() + "\r\nRunning: " + mon.Running + "\r\nEtapa: " + mon.Stage + "\r\n" + mon.LastError);
                     if (Arg("raport") != null)
                         Report.SaveHtml(Arg("raport"), mon, mon.Snap(true), "", true);
                 }

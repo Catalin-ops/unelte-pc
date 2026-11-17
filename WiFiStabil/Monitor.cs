@@ -251,6 +251,7 @@ namespace InfoPcWifi
                 s.Rssi = w.Connected ? w.Rssi : 0;
                 s.GwMs = gwMs; s.NetMs = netMs;
                 samples.Add(s);
+                Trace("masuratoare " + samples.Count + " monitor " + GetHashCode());
 
                 Wifi = w; Gateway = gw; State = st; GwMs = gwMs; NetMs = netMs; LastTime = now;
                 AdapterName = nic != null ? nic.Description : w.Adapter;

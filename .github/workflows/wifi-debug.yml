@@ -18,4 +18,4 @@ jobs:
           $p = Start-Process -FilePath (Resolve-Path dist\WiFiStabil.exe) -ArgumentList "--captura=$out", '--marime=1600x1000', '--porneste' -PassThru
           if (-not $p.WaitForExit(60000)) { $p.Kill() }
           if (Test-Path "$out.diag.txt") { Get-Content "$out.diag.txt" }
-          Get-Content $env:WIFISTABIL_TRACE -ErrorAction SilentlyContinue | Select-Object -First 80
+          Get-Content $env:WIFISTABIL_TRACE -ErrorAction SilentlyContinue | Select-String -Pattern 'Start|captura|masuratoare|astept|gata asteptarea' | Select-Object -Last 60
