@@ -40,8 +40,8 @@ namespace InfoPcWifi
 
     public class NetEvent
     {
-        public DateTime Time;
-        public string Text;
+        public DateTime Time { get; set; }
+        public string Text { get; set; }
         public string TimeText { get { return Time.ToString("HH:mm:ss"); } }
     }
 
@@ -68,6 +68,7 @@ namespace InfoPcWifi
         public DateTime Started, LastTime;
         public volatile bool Running, Finished;
         public string StopReason = "";
+        public string LastError = "";
 
         // ultimele valori (pentru afisare)
         public WifiInfo Wifi = new WifiInfo();
@@ -155,7 +156,8 @@ namespace InfoPcWifi
                             AddEvent(last, "Măsurarea s-a oprit " + Dur((tick - last).TotalSeconds) + " (calculatorul a fost probabil în repaus); perioada nu e numărată.");
                         }
                     }
-                    try { Measure(tick); } catch (Exception) { }
+                    try { Measure(tick); }
+                    catch (Exception ex) { LastError = ex.ToString(); }
                     last = tick;
                     if (MaxMinutes > 0 && (DateTime.Now - Started).TotalMinutes >= MaxMinutes) { StopReason = "durata"; break; }
                     DateTime next = tick.AddSeconds(IntervalSec);

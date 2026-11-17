@@ -58,6 +58,7 @@ function Cap($file, $argsx, $size = '1600x1000') {
     $p = Start-Process -FilePath $exe -ArgumentList (@("--captura=$out", "--marime=$size") + $argsx) -PassThru
     if (-not $p.WaitForExit(90000)) { $p.Kill() }
     if (Test-Path "$out.eroare.txt") { Get-Content "$out.eroare.txt" | Write-Host; throw "Captura $file a dat eroare" }
+    if (Test-Path "$out.diag.txt") { Write-Host "Diagnostic $file :"; Get-Content "$out.diag.txt" | Write-Host }
     if (Test-Path $out) { Write-Host "captura $file" } else { throw "Captura $file lipseste" }
 }
 Cap 'demo.png' @('--demo', "--raport=$((Join-Path (Get-Location).Path 'shots\wifi\raport_demo.html'))")

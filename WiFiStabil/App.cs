@@ -161,8 +161,8 @@ namespace InfoPcWifi
                 mon.LoadDemo(6);
                 win.Title = "Wi-Fi Stabil — demonstrație";
             }
-            WifiInfo w = Wlan.Query();
-            mon.Wifi = w;
+            WifiInfo w = demo ? mon.Wifi : Wlan.Query();
+            if (!demo) mon.Wifi = w;
             if (!w.Found && !demo) ShowWarn("Nu am găsit o placă Wi-Fi pe acest calculator. Testul verifică atunci conexiunea pe cablu.", null);
             Refresh();
             if (Arg("captura") != null) win.ContentRendered += delegate { CaptureAndExit(); };
@@ -601,6 +601,8 @@ namespace InfoPcWifi
                     PngBitmapEncoder enc = new PngBitmapEncoder();
                     enc.Frames.Add(BitmapFrame.Create(rtb));
                     using (FileStream fs = File.Create(file)) enc.Save(fs);
+                    if (mon.LastError.Length > 0 || (Arg("porneste") != null && mon.Snap(false).Total == 0))
+                        File.WriteAllText(file + ".diag.txt", "Masuratori: " + mon.Snap(false).Total + "\r\nRunning: " + mon.Running + "\r\n" + mon.LastError);
                     if (Arg("raport") != null)
                         Report.SaveHtml(Arg("raport"), mon, mon.Snap(true), "", true);
                 }

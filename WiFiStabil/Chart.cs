@@ -36,7 +36,7 @@ namespace InfoPcWifi
             MouseLeave += delegate { hoverX = -1; InvalidateVisual(); };
         }
 
-        class Col { public int St = -1, N, Bad; public int Sig = -1, Net = -1, Gw = -1; public bool Fill; }
+        class Col { public int St = -1, N, Bad; public int Sig = -1, Net = -1, Gw = -1; public bool Fill; public long NetSum, GwSum; public int NetN, GwN; }
 
         FormattedText Text(string s, double size, Brush b)
         {
@@ -66,8 +66,8 @@ namespace InfoPcWifi
                 if (s.State > a.St) a.St = s.State;
                 if (s.State != 0) a.Bad++;
                 if (s.Signal >= 0) a.Sig = a.Sig < 0 ? s.Signal : Math.Min(a.Sig, s.Signal);
-                if (s.NetMs >= 0) { a.Net = Math.Max(a.Net, s.NetMs); lats.Add(s.NetMs); }
-                if (s.GwMs >= 0) a.Gw = Math.Max(a.Gw, s.GwMs);
+                if (s.NetMs >= 0) { a.NetSum += s.NetMs; a.NetN++; a.Net = (int)(a.NetSum / a.NetN); lats.Add(s.NetMs); }
+                if (s.GwMs >= 0) { a.GwSum += s.GwMs; a.GwN++; a.Gw = (int)(a.GwSum / a.GwN); }
             }
             // completeaza coloanele dintre masuratori apropiate
             double colSec = TT / cols;
@@ -83,7 +83,7 @@ namespace InfoPcWifi
                 }
             }
             lats.Sort();
-            int p98 = lats.Count > 0 ? lats[Math.Min(lats.Count - 1, (int)(lats.Count * 0.98))] : 50;
+            int p98 = lats.Count > 0 ? lats[Math.Min(lats.Count - 1, (int)(lats.Count * 0.95))] : 50;
             foreach (int v in new int[] { 50, 100, 150, 200, 300, 500, 1000, 2000 }) { maxLat = v; if (v >= p98 * 1.25) break; }
 
             // zone
@@ -146,7 +146,7 @@ namespace InfoPcWifi
                 else
                 {
                     txt += Monitor.StateName(a.St) + (a.N > 1 && a.Bad > 0 ? " (" + a.Bad + " din " + a.N + ")" : "") + "\n";
-                    txt += "Semnal: " + (a.Sig < 0 ? "—" : a.Sig + "%") + "\nInternet: " + (a.Net < 0 ? "—" : a.Net + " ms") + "  ·  Router: " + (a.Gw < 0 ? "—" : a.Gw + " ms");
+                    txt += "Semnal: " + (a.Sig < 0 ? "—" : a.Sig + "%") + "\nInternet (medie): " + (a.Net < 0 ? "—" : a.Net + " ms") + "  ·  Router: " + (a.Gw < 0 ? "—" : a.Gw + " ms");
                 }
                 FormattedText ft = Text(txt, 12, Brushes.White);
                 double bw = ft.Width + 18, bh = ft.Height + 12;
