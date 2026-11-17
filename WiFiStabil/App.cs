@@ -602,7 +602,7 @@ namespace InfoPcWifi
                     enc.Frames.Add(BitmapFrame.Create(rtb));
                     using (FileStream fs = File.Create(file)) enc.Save(fs);
                     if (mon.LastError.Length > 0 || (Arg("porneste") != null && mon.Snap(false).Total == 0))
-                        File.WriteAllText(file + ".diag.txt", "Masuratori: " + mon.Snap(false).Total + "\r\nRunning: " + mon.Running + "\r\n" + mon.LastError);
+                        File.WriteAllText(file + ".diag.txt", "Masuratori: " + mon.Snap(false).Total + "\r\nRunning: " + mon.Running + "\r\nEtapa: " + mon.Stage + "\r\n" + mon.LastError);
                     if (Arg("raport") != null)
                         Report.SaveHtml(Arg("raport"), mon, mon.Snap(true), "", true);
                 }

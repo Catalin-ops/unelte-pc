@@ -11,7 +11,6 @@ using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace InfoPcWifi
 {
@@ -69,6 +68,7 @@ namespace InfoPcWifi
         public volatile bool Running, Finished;
         public string StopReason = "";
         public string LastError = "";
+        public volatile string Stage = "";
 
         // ultimele valori (pentru afisare)
         public WifiInfo Wifi = new WifiInfo();
@@ -180,13 +180,16 @@ namespace InfoPcWifi
         // ------------------------------------------------------------ o masuratoare
         void Measure(DateTime now)
         {
+            Stage = "wlan";
             WifiInfo w = Wlan.Query();
+            Stage = "placa";
             NetworkInterface nic = PickNic(w);
             bool up = nic != null && nic.OperationalStatus == OperationalStatus.Up;
             string kind = nic != null && nic.NetworkInterfaceType == NetworkInterfaceType.Wireless80211 ? "Wi-Fi" : nic != null ? "Cablu" : "Wi-Fi";
             if (w.Found && w.Connected) up = true;
             string gw = GatewayOverride.Length > 0 ? GatewayOverride : GatewayOf(nic);
 
+            Stage = "ping";
             Dictionary<string, int> p = new Dictionary<string, int>();
             if (up)
             {
@@ -208,6 +211,8 @@ namespace InfoPcWifi
             else if (gwEver) st = 2;
             else st = 1;
 
+            Stage = "salvare";
+            bool started = false;
             lock (sync)
             {
                 if (w.Bssid.Length > 0 && lastBssid.Length > 0 && w.Bssid != lastBssid)
@@ -223,7 +228,7 @@ namespace InfoPcWifi
 
                 if (st != 0)
                 {
-                    if (cur == null) { cur = new Incident(); cur.Start = now; cur.End = now; cur.Type = st; cur.Ongoing = true; if (IncidentStarted != null) IncidentStarted(); }
+                    if (cur == null) { cur = new Incident(); cur.Start = now; cur.End = now; cur.Type = st; cur.Ongoing = true; started = true; }
                     else if (st > cur.Type) cur.Type = st;
                     cur.End = now;
                 }
@@ -245,6 +250,8 @@ namespace InfoPcWifi
                 AdapterName = nic != null ? nic.Description : w.Adapter;
                 AdapterKind = kind;
             }
+            if (started && IncidentStarted != null) { try { IncidentStarted(); } catch (Exception) { } }
+            Stage = "csv";
 
             if (csv != null)
             {
@@ -259,6 +266,7 @@ namespace InfoPcWifi
                 catch (Exception) { }
             }
             if (samples.Count % 30 == 1) WiredAlso = HasWired(nic);
+            Stage = "gata";
         }
 
         public event Action IncidentStarted;
@@ -426,27 +434,33 @@ namespace InfoPcWifi
         static Dictionary<string, int> Pings(List<string> targets, int timeout)
         {
             Dictionary<string, int> res = new Dictionary<string, int>();
-            Dictionary<string, Task<PingReply>> tasks = new Dictionary<string, Task<PingReply>>();
-            List<Ping> pings = new List<Ping>();
-            foreach (string t in targets)
+            List<string> list = new List<string>();
+            foreach (string t in targets) if (!string.IsNullOrEmpty(t) && !list.Contains(t)) list.Add(t);
+            int[] ms = new int[list.Count];
+            CountdownEvent done = new CountdownEvent(list.Count);
+            for (int i = 0; i < list.Count; i++)
             {
-                if (string.IsNullOrEmpty(t) || tasks.ContainsKey(t)) continue;
-                try { Ping p = new Ping(); pings.Add(p); tasks[t] = p.SendPingAsync(t, timeout); }
-                catch (Exception) { res[t] = -1; }
-            }
-            try { Task.WaitAll(new List<Task<PingReply>>(tasks.Values).ToArray(), timeout + 700); } catch (Exception) { }
-            foreach (KeyValuePair<string, Task<PingReply>> kv in tasks)
-            {
-                int ms = -1;
-                try
+                ms[i] = -1;
+                int k = i;
+                string target = list[i];
+                Thread th = new Thread(delegate()
                 {
-                    if (kv.Value.Status == TaskStatus.RanToCompletion && kv.Value.Result.Status == IPStatus.Success)
-                        ms = (int)kv.Value.Result.RoundtripTime;
-                }
-                catch (Exception) { }
-                res[kv.Key] = ms;
+                    try
+                    {
+                        using (Ping p = new Ping())
+                        {
+                            PingReply r = p.Send(target, timeout);
+                            if (r != null && r.Status == IPStatus.Success) ms[k] = (int)r.RoundtripTime;
+                        }
+                    }
+                    catch (Exception) { }
+                    finally { try { done.Signal(); } catch (Exception) { } }
+                });
+                th.IsBackground = true;
+                th.Start();
             }
-            foreach (Ping p in pings) try { p.Dispose(); } catch (Exception) { }
+            if (list.Count > 0) done.Wait(timeout + 800);
+            for (int i = 0; i < list.Count; i++) res[list[i]] = ms[i];
             return res;
         }
     }
