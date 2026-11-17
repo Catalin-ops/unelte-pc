@@ -1,0 +1,292 @@
+﻿<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Raport Wi-Fi Stabil</title>
+<style>
+:root{--bg:#f5f6f8;--card:#fff;--ink:#1c2230;--mut:#667085;--line:#e3e6eb;--sig:#2f6fdf;--lat:#7a4fd6;--gw:#9aa4b2}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.45 "Segoe UI",system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink)}
+.wrap{max-width:1180px;margin:0 auto;padding:24px 20px 40px}
+h1{font-size:22px;margin:0 0 4px}
+h2{font-size:16px;margin:0 0 12px}
+.sub{color:var(--mut);font-size:13px}
+.sub b{color:var(--ink);font-weight:600}
+.banner{margin-top:12px;padding:8px 12px;border-radius:8px;background:#fff7e0;border:1px solid #f1d58a;font-size:13px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.verdict{margin-top:18px;border-left:6px solid #1f9d55}
+.verdict .t{font-size:19px;font-weight:650}
+.verdict p{margin:6px 0 0;color:#344054}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin-top:14px}
+.k{color:var(--mut);font-size:11.5px;text-transform:uppercase;letter-spacing:.05em}
+.v{font-size:23px;font-weight:650;margin-top:2px;font-variant-numeric:tabular-nums}
+.v small{font-size:13px;color:var(--mut);font-weight:500}
+section{margin-top:18px}
+.lbl{font-size:12px;color:var(--mut);margin:12px 0 4px;display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center}
+.lbl:first-child{margin-top:0}
+.dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.chart{position:relative}
+canvas{display:block;width:100%}
+#cursor{position:absolute;top:0;bottom:0;width:1px;background:#1c223055;display:none;pointer-events:none}
+#tip{position:absolute;top:8px;pointer-events:none;background:#1c2230;color:#fff;font-size:12px;line-height:1.5;padding:7px 9px;border-radius:7px;white-space:nowrap;display:none;z-index:5;box-shadow:0 4px 14px #0003}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:11.5px;color:var(--mut);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+td.n{font-variant-numeric:tabular-nums;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+.empty{color:var(--mut);padding:6px 0}
+.row{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.row h2{margin:0}
+label.chk{font-size:13px;color:var(--mut);cursor:pointer}
+.btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 12px;font:inherit;cursor:pointer}
+.msg{color:#475467;font-size:12.5px}
+footer{margin-top:26px;color:var(--mut);font-size:12px;text-align:center}
+@media print{.noprint{display:none}body{background:#fff}.card{break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="row" style="margin-bottom:0">
+    <div>
+      <h1>Raport stabilitate Wi-Fi</h1>
+      <div class="sub" id="hdr"></div>
+    </div>
+    <button class="btn noprint" onclick="window.print()">Printează / PDF</button>
+  </div>
+  <div id="banner"></div>
+
+  <div class="card verdict" id="verdict"></div>
+  <div class="grid" id="stats"></div>
+
+  <section class="card">
+    <h2>Evoluție în timp</h2>
+    <div class="chart" id="chartWrap">
+      <div class="lbl"><span>Stare conexiune</span>
+        <span><i class="dot" style="background:#1f9d55"></i>OK</span>
+        <span><i class="dot" style="background:#d99a00"></i>Internet căzut</span>
+        <span><i class="dot" style="background:#e8590c"></i>Routerul nu răspunde</span>
+        <span><i class="dot" style="background:#d64545"></i>Wi-Fi deconectat</span>
+        <span><i class="dot" style="background:#e4e7ec"></i>Fără măsurători</span>
+      </div>
+      <canvas id="cSt"></canvas>
+      <div class="lbl"><span><i class="dot" style="background:var(--sig)"></i>Semnal Wi-Fi (%)</span></div>
+      <canvas id="cSig"></canvas>
+      <div class="lbl"><span>Latență (ms)</span>
+        <span><i class="dot" style="background:var(--lat)"></i>Internet</span>
+        <span><i class="dot" style="background:var(--gw)"></i>Router</span>
+      </div>
+      <canvas id="cLat"></canvas>
+      <canvas id="cAx"></canvas>
+      <div id="cursor"></div><div id="tip"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="row"><h2>Întreruperi</h2>
+      <label class="chk noprint"><input type="checkbox" id="showSmall"> arată și pierderile scurte</label></div>
+    <div id="incT"></div>
+  </section>
+
+  <section class="card">
+    <h2>Evenimente</h2>
+    <div id="evT"></div>
+  </section>
+
+  <section class="card">
+    <h2>Jurnalul Windows pentru Wi-Fi</h2>
+    <div id="wlT"></div>
+  </section>
+
+  <footer id="foot">Generat de Wi-Fi Stabil · Info PC Electric</footer>
+</div>
+
+<script>
+const D={"startMs":1794947507918,"endMs":1794947519007,"final":true,"pc":"runnervmm7ud1","ssid":"","adapter":"Microsoft Hyper-V Network Adapter #3","gw":"10.1.0.1","targets":"1.1.1.1, 8.8.8.8","interval":1,"prag":3,"roam":0,"wired":false,"lic":"Test CI","samples":[[0,1,-1,-1,-1],[1,1,-1,-1,-1],[2,1,-1,-1,-1],[3,1,-1,-1,-1],[4.1,1,-1,-1,-1],[5.1,1,-1,-1,-1],[6.2,1,-1,-1,-1],[7.2,1,-1,-1,-1],[8.2,1,-1,-1,-1],[9.3,1,-1,-1,-1],[10.3,1,-1,-1,-1]],"incidents":[[1794947507920,1794947519005,1,0]],"events":[],"wlan":[]};
+const S=D.samples, N=S.length;
+const COL=['#1f9d55','#d99a00','#e8590c','#d64545'];
+const NM=['OK','Internet căzut','Routerul nu răspunde','Wi-Fi deconectat'];
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const pad=n=>String(n).padStart(2,'0');
+function dur(s){s=Math.round(s);const h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return h?`${h}h ${pad(m)}m ${pad(x)}s`:m?`${m}m ${pad(x)}s`:`${x}s`;}
+function tm(ms,sec=true){const d=new Date(ms);return pad(d.getHours())+':'+pad(d.getMinutes())+(sec?':'+pad(d.getSeconds()):'');}
+function dt(ms){const d=new Date(ms);return `${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()} ${tm(ms)}`;}
+const fmt=(x,d=0)=>x==null?'—':x.toLocaleString('ro-RO',{minimumFractionDigits:d,maximumFractionDigits:d});
+function pct(a,p){if(!a.length)return null;const b=[...a].sort((x,y)=>x-y);return b[Math.min(b.length-1,Math.floor(p*b.length))];}
+const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
+
+if(D.lic)$('foot').textContent='Generat de Wi-Fi Stabil Pro · licențiat pentru '+D.lic;
+// ---------- statistici
+let ok=0,sig=[],lat=[],gwl=[];
+for(const s of S){if(s[1]===0)ok++;if(s[2]>=0)sig.push(s[2]);if(s[4]>=0)lat.push(s[4]);if(s[3]>=0)gwl.push(s[3]);}
+const avail=N?ok/N*100:100;
+const I=D.incidents.map(x=>({a:x[0],b:x[1],t:x[2],on:x[3]===1,d:Math.max(1,(x[1]-x[0])/1000)}));
+const big=I.filter(i=>i.d>=D.prag), small=I.filter(i=>i.d<D.prag);
+const offline=I.reduce((s,i)=>s+i.d,0), longest=I.reduce((m,i)=>Math.max(m,i.d),0);
+const TT=Math.max(1,(D.endMs-D.startMs)/1000);
+const sigAvg=avg(sig), sigMin=sig.length?Math.min(...sig):null;
+const latAvg=avg(lat), lat95=pct(lat,.95), gwAvg=avg(gwl);
+
+// ---------- antet
+$('hdr').innerHTML=[
+  D.ssid?`Rețea <b>${esc(D.ssid)}</b>`:'',
+  `Calculator <b>${esc(D.pc)}</b>`,
+  `Perioadă <b>${dt(D.startMs)}</b> – <b>${dt(D.endMs)}</b>`,
+  D.adapter?`Placă ${esc(D.adapter)}`:'',
+  `Router ${esc(D.gw||'—')} · Internet ${esc(D.targets)} · o măsurătoare la ${D.interval}s`
+].filter(Boolean).join(' &nbsp;·&nbsp; ');
+let ban=[];
+if(!D.final)ban.push('Test în desfășurare: raport intermediar, cu datele de până acum.');
+if(D.wired)ban.push('În timpul testului a fost conectat și un cablu de rețea. Rezultatele pot reflecta cablul, nu Wi-Fi-ul.');
+if(N&&!sig.length)ban.push('Windows nu a dat informații despre semnal. Pe Windows 11 activează Setări › Confidențialitate și securitate › Locație (și accesul aplicațiilor la locație), apoi repornește testul.');
+$('banner').innerHTML=ban.map(b=>`<div class="banner">${esc(b)}</div>`).join('');
+
+// ---------- verdict
+(function(){
+  const v=$('verdict');let lvl,t,p=[];
+  const cnt=[0,0,0,0];big.forEach(i=>cnt[i.t]++);
+  if(!N){lvl=1;t='Nu există încă măsurători';}
+  else if(!big.length&&avail>=99.5){lvl=0;t='Conexiune stabilă';
+    p.push(small.length?`Nicio întrerupere reală în ${dur(TT)}. Au fost ${small.length} pierderi scurte de pachete (sub ${D.prag}s), normale pentru Wi-Fi.`:`Nicio întrerupere în ${dur(TT)} de test.`);}
+  else{
+    lvl=(big.length<=2&&avail>=99)?1:2;
+    t=lvl===1?'Întreruperi ocazionale':'Conexiune instabilă';
+    p.push(`${big.length} întreruperi în ${dur(TT)} (cea mai lungă ${dur(longest)}, în total ${dur(offline)} fără conexiune).`);
+    const dom=cnt.indexOf(Math.max(...cnt));
+    const CAUSE={
+      3:'Majoritatea sunt deconectări complete de la Wi-Fi. Cauze uzuale: semnal slab sau distanță mare, interferențe pe canal, driverul plăcii Wi-Fi sau economisirea de energie a plăcii (Manager dispozitive › placa Wi-Fi › Gestionare energie).',
+      2:'Laptopul rămâne conectat la Wi-Fi, dar routerul nu mai răspunde. De obicei routerul sau AP-ul se blochează, se repornește singur ori e suprasolicitat.',
+      1:'Wi-Fi-ul și routerul funcționează, dar internetul nu răspunde. Problema e cel mai probabil la furnizorul de internet sau la modem, nu la Wi-Fi.'};
+    if(CAUSE[dom])p.push(CAUSE[dom]);
+  }
+  if(sigAvg!=null&&(sigAvg<50||sigMin<30))p.push(`Semnalul e slab: în medie ${fmt(sigAvg)}%, minim ${sigMin}%. Apropie laptopul de router sau adaugă un punct de acces.`);
+  if(D.roam>3)p.push(`Laptopul a schimbat de ${D.roam} ori punctul de acces (roaming); fiecare schimbare poate da o scurtă întrerupere.`);
+  if(lat95!=null&&lat95>150)p.push(`Latența e uneori mare (95% din ping-uri sub ${lat95} ms), ceea ce se simte în apeluri video și jocuri.`);
+  const c=['#1f9d55','#d99a00','#d64545'][lvl];
+  v.style.borderLeftColor=c;
+  v.innerHTML=`<div class="t" style="color:${c}">${t}</div>`+p.map(x=>`<p>${esc(x)}</p>`).join('');
+})();
+
+// ---------- carduri
+const cards=[
+  ['Durată test',dur(TT)],
+  ['Disponibilitate',fmt(avail,2)+' %'],
+  [`Întreruperi (≥${D.prag}s)`,big.length],
+  ['Cea mai lungă',longest?dur(longest):'—'],
+  ['Total fără conexiune',offline?dur(offline):'0s'],
+  ['Pierderi scurte',small.length],
+  ['Semnal mediu',sigAvg==null?'—':`${fmt(sigAvg)} %<small> · min ${sigMin}%</small>`],
+  ['Ping internet',latAvg==null?'—':`${fmt(latAvg)} ms<small> · p95 ${lat95}</small>`],
+  ['Ping router',gwAvg==null?'—':`${fmt(gwAvg)} ms`],
+  ['Schimbări AP',D.roam],
+];
+$('stats').innerHTML=cards.map(c=>`<div class="card"><div class="k">${c[0]}</div><div class="v">${c[1]}</div></div>`).join('');
+
+// ---------- grafice
+const wrap=$('chartWrap');
+const CV={st:$('cSt'),sig:$('cSig'),lat:$('cLat'),ax:$('cAx')};
+const H={st:30,sig:120,lat:140,ax:22};
+let W=0,agg=[],latMax=100;
+function build(){
+  W=Math.max(200,Math.floor(wrap.clientWidth));
+  agg=new Array(W).fill(null);
+  for(const s of S){
+    let c=Math.floor(s[0]/TT*W);if(c>=W)c=W-1;if(c<0)c=0;
+    let a=agg[c];if(!a)a=agg[c]={st:0,n:0,bad:0,sig:null,net:null,gw:null};
+    a.n++;if(s[1]>a.st)a.st=s[1];if(s[1])a.bad++;
+    if(s[2]>=0)a.sig=a.sig==null?s[2]:Math.min(a.sig,s[2]);
+    if(s[4]>=0)a.net=a.net==null?s[4]:Math.max(a.net,s[4]);
+    if(s[3]>=0)a.gw=a.gw==null?s[3]:Math.max(a.gw,s[3]);
+  }
+  // umple coloanele goale dintre măsurători apropiate (teste scurte)
+  const colSec=TT/W, maxFill=Math.ceil(D.interval*2.5/colSec);
+  let last=null,run=0;
+  for(let i=0;i<W;i++){
+    if(agg[i]){last=agg[i];run=0;continue;}
+    if(last&&++run<=maxFill)agg[i]=Object.assign({},last,{fill:true});
+  }
+  const p=pct(lat.concat(gwl),.98)||50;
+  latMax=[50,100,150,200,300,500,1000,2000].find(v=>v>=p*1.25)||2000;
+}
+function setup(cv,h){
+  const r=window.devicePixelRatio||1;cv.width=W*r;cv.height=h*r;cv.style.height=h+'px';
+  const x=cv.getContext('2d');x.setTransform(r,0,0,r,0,0);x.clearRect(0,0,W,h);return x;
+}
+function grid(x,h,ticks,max,unit){
+  x.font='11px Segoe UI,system-ui,sans-serif';x.textBaseline='middle';
+  for(const v of ticks){const y=yv(v,max,h);x.strokeStyle='#eceef2';x.lineWidth=1;x.beginPath();x.moveTo(0,y+.5);x.lineTo(W,y+.5);x.stroke();
+    x.fillStyle='#98a2b3';x.fillText(v+unit,4,Math.min(h-7,Math.max(7,y-7)));}
+}
+const yv=(v,max,h)=>h-4-Math.min(v,max)/max*(h-10);
+function line(x,h,f,max,col,w=1.6){
+  x.strokeStyle=col;x.lineWidth=w;x.lineJoin='round';x.beginPath();let on=false;
+  for(let i=0;i<W;i++){const v=f(i);if(v==null){on=false;continue;}const y=yv(v,max,h);if(on)x.lineTo(i+.5,y);else{x.moveTo(i+.5,y);on=true;}}
+  x.stroke();
+}
+function draw(){
+  build();
+  let x=setup(CV.st,H.st);
+  x.fillStyle='#e4e7ec';x.fillRect(0,0,W,H.st);
+  for(let i=0;i<W;i++){const a=agg[i];if(a&&!a.st){x.fillStyle=COL[0];x.fillRect(i,0,1,H.st);}}
+  for(let i=0;i<W;i++){const a=agg[i];if(a&&a.st){x.fillStyle=COL[a.st];x.fillRect(i-1,0,3,H.st);}}
+
+  x=setup(CV.sig,H.sig);grid(x,H.sig,[0,25,50,75,100],100,'%');
+  if(sig.length)line(x,H.sig,i=>agg[i]&&agg[i].sig,100,getComputedStyle(document.body).getPropertyValue('--sig')||'#2f6fdf');
+  else{x.fillStyle='#98a2b3';x.font='12px Segoe UI,sans-serif';x.fillText('Semnal indisponibil',W/2-50,H.sig/2);}
+
+  x=setup(CV.lat,H.lat);grid(x,H.lat,[0,latMax/2,latMax],latMax,' ms');
+  line(x,H.lat,i=>agg[i]&&agg[i].gw,latMax,'#9aa4b2',1.2);
+  line(x,H.lat,i=>agg[i]&&agg[i].net,latMax,'#7a4fd6',1.6);
+
+  x=setup(CV.ax,H.ax);x.font='11px Segoe UI,system-ui,sans-serif';x.fillStyle='#667085';x.textBaseline='top';
+  const steps=[10,30,60,120,300,600,900,1800,3600,7200,10800,21600,43200,86400];
+  const maxTicks=Math.max(2,Math.floor(W/90));
+  const step=steps.find(s=>TT/s<=maxTicks)||86400;
+  const tzOff=new Date(D.startMs).getTimezoneOffset()*60;
+  let t=Math.ceil((D.startMs/1000-tzOff)/step)*step+tzOff;
+  for(;t*1000<=D.endMs;t+=step){
+    const px=(t-D.startMs/1000)/TT*W;if(px<0)continue;
+    x.fillRect(Math.round(px),0,1,4);
+    const lab=tm(t*1000,step<60);const tw=x.measureText(lab).width;
+    x.fillText(lab,Math.min(W-tw,Math.max(0,px-tw/2)),6);
+  }
+}
+const tip=$('tip'),cur=$('cursor');
+wrap.addEventListener('mousemove',e=>{
+  const r=wrap.getBoundingClientRect();const px=Math.floor(e.clientX-r.left);
+  if(px<0||px>=W){tip.style.display=cur.style.display='none';return;}
+  const a=agg[px];const ms=D.startMs+(px+.5)/W*TT*1000;
+  let h=`<b>${tm(ms)}</b><br>`;
+  if(!a)h+='fără măsurători';
+  else{
+    h+=`Stare: ${NM[a.st]}`+(a.n>1&&a.bad?` (${a.bad} din ${a.n} măsurători)`:'')+'<br>';
+    h+=`Semnal: ${a.sig==null?'—':a.sig+'%'}<br>Internet: ${a.net==null?'—':a.net+' ms'} · Router: ${a.gw==null?'—':a.gw+' ms'}`;
+  }
+  tip.innerHTML=h;tip.style.display='block';cur.style.display='block';cur.style.left=px+'px';
+  const tw=tip.offsetWidth;tip.style.left=(px+14+tw>W?px-14-tw:px+14)+'px';
+});
+wrap.addEventListener('mouseleave',()=>{tip.style.display=cur.style.display='none';});
+let rz;window.addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(draw,80);});
+draw();
+
+// ---------- tabele
+function incTable(){
+  const list=$('showSmall').checked?I:big;
+  if(!list.length){$('incT').innerHTML=`<div class="empty">${I.length?`Nicio întrerupere de ${D.prag}s sau mai mult. ${small.length} pierderi scurte ascunse.`:'Nicio întrerupere.'}</div>`;return;}
+  $('incT').innerHTML='<table><tr><th>#</th><th>Început</th><th>Sfârșit</th><th>Durată</th><th>Tip</th></tr>'+
+    list.map((i,k)=>`<tr${i.d<D.prag?' style="color:#98a2b3"':''}><td class="n">${k+1}</td><td class="n">${dt(i.a)}</td><td class="n">${i.on?'în desfășurare':tm(i.b)}</td><td class="n">${dur(i.d)}</td><td><i class="dot" style="background:${COL[i.t]}"></i>${NM[i.t]}</td></tr>`).join('')+'</table>';
+}
+$('showSmall').addEventListener('change',incTable);incTable();
+
+$('evT').innerHTML=D.events.length?'<table><tr><th>Ora</th><th>Eveniment</th></tr>'+
+  D.events.map(e=>`<tr><td class="n">${dt(e[0])}</td><td>${esc(e[1])}</td></tr>`).join('')+'</table>'
+  :'<div class="empty">Niciun eveniment (fără schimbări de AP, rețea sau pauze în măsurare).</div>';
+
+const WN={8001:'Conectat',8002:'Conectare eșuată',8003:'Deconectat'};
+$('wlT').innerHTML=D.wlan.length?'<table><tr><th>Ora</th><th>Eveniment</th><th>Detalii din Windows</th></tr>'+
+  D.wlan.map(e=>`<tr><td class="n">${dt(e[0])}</td><td class="n">${WN[e[1]]||e[1]}</td><td class="msg">${esc(e[2])}</td></tr>`).join('')+'</table>'
+  :'<div class="empty">Windows nu a înregistrat conectări sau deconectări Wi-Fi în această perioadă.</div>';
+</script>
+</body>
+</html>
