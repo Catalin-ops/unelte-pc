@@ -219,7 +219,7 @@ function kv(el, rows){
   $(el).innerHTML = rows.length ? rows.map(([k,v,raw]) => `<dt>${esc(k)}</dt><dd>${raw ? v : esc(v)}</dd>`).join('') : '<dd class="muted">–</dd>';
 }
 function sigBars(p){ const n = p >= 80 ? 4 : p >= 60 ? 3 : p >= 40 ? 2 : p > 0 ? 1 : 0; return `<span class="sig">${[6,9,12,15].map((hh,i)=>`<i style="height:${hh}px" class="${i<n?'on':''}"></i>`).join('')}</span>`; }
-function linkTxt(m){ if (!m) return ''; return m >= 1000 ? fmt(m/1000, m%1000?1:0)+' Gbps' : fmt(m,0)+' Mbps'; }
+function linkTxt(m){ if (!m) return ''; if (m >= 4294) return 'peste 4 Gbps'; return m >= 1000 ? fmt(m/1000, m%1000?1:0)+' Gbps' : fmt(m,0)+' Mbps'; }
 
 function renderLocal(li){
   if (!li) return;
