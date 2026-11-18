@@ -12,6 +12,10 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+          cache: false
       - name: Compilare
         shell: powershell
         run: ./build.ps1
@@ -28,6 +32,9 @@ jobs:
       - name: Test pornire (verifica XAML si initializare)
         shell: powershell
         run: ./tests/smoke.ps1
+      - name: Test Viteza Internet (retea locala + test complet de viteza)
+        shell: powershell
+        run: ./tests/testviteza.ps1
       - name: Test recuperare pe partitie NTFS reala
         shell: powershell
         run: ./tests/ntfs.ps1
@@ -74,5 +81,5 @@ jobs:
           git push -f -q "https://x-access-token:$env:GH_TOKEN@github.com/${{ github.repository }}.git" build
           Set-Location ..
           cmd /c "gh release delete ultima-versiune --yes --cleanup-tag 2>nul"
-          gh release create ultima-versiune dist\RecuperareFisiere.exe dist\SanatatePC.exe (Get-ChildItem dist\SanatatePC_Setup_*.exe).FullName (Get-ChildItem dist\SanatatePC_Portabil_*.zip).FullName --title "Ultima versiune ($sha)" --notes "Recuperare Fisiere si Sanatate PC - descarca fisierele .exe de mai jos." --latest
+          gh release create ultima-versiune dist\RecuperareFisiere.exe dist\SanatatePC.exe dist\TestVitezaInternet.exe (Get-ChildItem dist\SanatatePC_Setup_*.exe).FullName (Get-ChildItem dist\SanatatePC_Portabil_*.zip).FullName --title "Ultima versiune ($sha)" --notes "Recuperare Fisiere, Sanatate PC si Test Viteza Internet - descarca fisierele .exe de mai jos." --latest
           if ($LASTEXITCODE -ne 0) { exit 1 }

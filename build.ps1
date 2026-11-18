@@ -1,4 +1,5 @@
 # Construieste RecuperareFisiere.exe, SanatatePC.exe si GeneratorLicente.exe cu compilatorul C# inclus in Windows (.NET Framework 4.x).
+# TestVitezaInternet.exe e scris in Go si se construieste doar daca Go e instalat (in GitHub Actions este).
 $ErrorActionPreference = 'Stop'
 Set-Location $PSScriptRoot
 $fw = Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319'
@@ -27,4 +28,22 @@ Build 'SanatatePC' 'SanatatePC' 'sanatate.ico' 'app.manifest' @()
 # varianta pentru Microsoft Store (MSIX): porneste fara cerere de administrator
 Build 'SanatatePC_Store' 'SanatatePC' 'sanatate.ico' 'app_user.manifest' @()
 Build 'GeneratorLicente' 'GeneratorLicente' 'sanatate.ico' 'app_user.manifest' @((Resolve-Path 'SanatatePC\Licenta.cs').Path)
+
+# Test Viteza Internet (Go, fara dependente; iconita se adauga prin rsrc)
+if (Get-Command go -ErrorAction SilentlyContinue) {
+    Write-Host '== TestVitezaInternet'
+    Push-Location TestViteza
+    try {
+        $env:GOOS = 'windows'; $env:GOARCH = 'amd64'; $env:CGO_ENABLED = '0'
+        & go run github.com/akavel/rsrc@v0.10.2 -ico ..\assets\viteza.ico -arch amd64 -o rsrc_windows_amd64.syso
+        if ($LASTEXITCODE -ne 0) { Write-Warning 'Iconita nu a putut fi adaugata' }
+        & go build -trimpath -ldflags '-H windowsgui -s -w' -o ..\dist\TestVitezaInternet.exe .
+        if ($LASTEXITCODE -ne 0) { throw 'Compilarea TestVitezaInternet a esuat' }
+    } finally {
+        Remove-Item rsrc_windows_amd64.syso -ErrorAction SilentlyContinue
+        Pop-Location
+    }
+} else {
+    Write-Warning 'Go nu e instalat - TestVitezaInternet.exe nu a fost construit (https://go.dev/dl)'
+}
 Get-ChildItem dist

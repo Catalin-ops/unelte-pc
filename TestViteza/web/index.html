@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<title>Test Viteză Internet — Info PC Electric</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+:root{
+  --bg:#0d1117; --panel:#151b24; --panel2:#1b2330; --line:#263142; --txt:#e6edf3; --mut:#8b98a9;
+  --down:#38bdf8; --up:#a78bfa; --ok:#34d399; --warn:#fbbf24; --bad:#f87171; --acc:#22d3ee;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--txt);font:14px/1.45 "Segoe UI",system-ui,sans-serif}
+header{display:flex;align-items:center;gap:16px;padding:14px 22px;border-bottom:1px solid var(--line);background:#0f141c}
+.brand{display:flex;align-items:center;gap:10px}
+.logo{width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,var(--acc),#2563eb);display:grid;place-items:center;font-weight:800;color:#04121a;font-size:15px}
+.brand b{font-size:16px}.brand small{display:block;color:var(--mut);font-size:12px}
+header .sp{flex:1}
+header input{background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:7px;padding:7px 10px;width:190px;font:inherit}
+main{padding:18px 22px 30px;display:grid;grid-template-columns:repeat(12,1fr);gap:16px;max-width:1500px;margin:0 auto}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.card h2{margin:0 0 12px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);font-weight:600}
+.c12{grid-column:span 12}.c8{grid-column:span 8}.c7{grid-column:span 7}.c6{grid-column:span 6}.c5{grid-column:span 5}.c4{grid-column:span 4}
+@media (max-width:1050px){.c8,.c7,.c6,.c5,.c4{grid-column:span 12}}
+/* zona principală */
+.hero{display:grid;grid-template-columns:330px 1fr;gap:22px;align-items:center}
+@media (max-width:760px){.hero{grid-template-columns:1fr}}
+.gauge{position:relative;width:310px;height:270px;margin:0 auto}
+.gauge svg{width:100%;height:100%}
+.gval{position:absolute;left:0;right:0;top:108px;text-align:center}
+.gval .n{font-size:46px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.gval .u{color:var(--mut);font-size:13px}
+.phase{position:absolute;left:0;right:0;bottom:6px;text-align:center;color:var(--mut);font-size:13px}
+.btn{border:0;border-radius:9px;padding:10px 18px;font:600 14px "Segoe UI",sans-serif;cursor:pointer;background:var(--panel2);color:var(--txt);border:1px solid var(--line)}
+.btn:hover{filter:brightness(1.15)}
+.btn.go{background:linear-gradient(135deg,var(--acc),#2563eb);color:#03121b;border:0;font-size:16px;padding:13px 34px}
+.btn.stop{background:#3b1d22;color:#fecaca;border-color:#5b2a31}
+.btn.sm{padding:6px 11px;font-size:12px}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.tile{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.tile .k{color:var(--mut);font-size:12px;display:flex;align-items:center;gap:6px}
+.tile .v{font-size:28px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:2px}
+.tile .v small{font-size:13px;color:var(--mut);font-weight:500;margin-left:3px}
+.tile .s{color:var(--mut);font-size:12px;margin-top:2px;min-height:17px}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.bar{height:6px;background:var(--panel2);border-radius:4px;overflow:hidden;margin:14px 0 10px}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--down),var(--up));transition:width .25s}
+.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.msg{margin-top:10px;font-size:13px;color:var(--bad)}.msg.w{color:var(--warn)}
+/* liste cheie-valoare */
+dl.kv{display:grid;grid-template-columns:minmax(120px,40%) 1fr;margin:0;gap:7px 12px}
+dl.kv dt{color:var(--mut)}dl.kv dd{margin:0;font-variant-numeric:tabular-nums;word-break:break-word}
+.big{font-size:22px;font-weight:700;margin-bottom:10px}
+.sig{display:inline-flex;gap:2px;align-items:flex-end;margin-left:6px;vertical-align:middle}
+.sig i{width:5px;background:var(--line);border-radius:1px}.sig i.on{background:var(--ok)}
+canvas{width:100%;height:200px;display:block}
+.legend{display:flex;gap:16px;color:var(--mut);font-size:12px;margin-top:6px}
+ul.diag{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+ul.diag li{padding:9px 12px;border-radius:8px;background:var(--panel2);border-left:3px solid var(--ok)}
+ul.diag li.w{border-color:var(--warn)}ul.diag li.b{border-color:var(--bad)}
+.uses{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.uses span{font-size:12px;padding:4px 9px;border-radius:20px;background:var(--panel2);border:1px solid var(--line)}
+.uses span.no{opacity:.45;text-decoration:line-through}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);font-size:13px}
+th{color:var(--mut);font-weight:600;font-size:12px}
+.empty{color:var(--mut);padding:10px 0}
+.muted{color:var(--mut)}
+#report{display:none}
+@media print{
+  @page{size:A4;margin:14mm}
+  body{background:#fff;color:#111}
+  header,main{display:none!important}
+  #report{display:block;font:9.5pt/1.32 "Segoe UI",Arial,sans-serif;color:#111}
+  #report .rh{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #0b4f8a;padding-bottom:6px;margin-bottom:10px}
+  #report .rh b{font-size:15pt;color:#0b4f8a}
+  #report h1{font-size:15pt;margin:0 0 2px}
+  #report h3{font-size:10pt;margin:10px 0 4px;color:#0b4f8a;text-transform:uppercase;letter-spacing:.04em}
+  #report table td,#report table th{border-bottom:1px solid #ddd;padding:2px 6px;font-size:9pt;color:#111}
+  #report table td:first-child{color:#555;width:42%}
+  #report .res{display:flex;gap:10px;margin:8px 0}
+  #report .res div{flex:1;border:1px solid #ccc;border-radius:6px;padding:5px 9px}
+  #report .res span{display:block;color:#555;font-size:9pt}
+  #report .res strong{font-size:15pt}
+  #report ul{margin:4px 0;padding-left:18px}
+  #report .two{display:flex;gap:16px}#report .two>div{flex:1;min-width:0}
+  #report .two table td:first-child{width:38%}
+  #report .sign{display:flex;justify-content:space-between;margin-top:22px}
+  #report .sign div{width:44%;border-top:1px solid #999;padding-top:4px;font-size:9.5pt;color:#555}
+  #report .foot{margin-top:8px;font-size:8.5pt;color:#777}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><div class="logo">IP</div><div><b>Test Viteză Internet</b><small>Info PC Electric S.R.L.</small></div></div>
+  <div class="sp"></div>
+  <input id="client" placeholder="Client (opțional)">
+  <input id="tech" placeholder="Tehnician (opțional)">
+</header>
+
+<main>
+  <section class="card c12">
+    <div class="hero">
+      <div class="gauge">
+        <svg viewBox="0 0 310 270" id="gsvg"></svg>
+        <div class="gval"><div class="n" id="gnum">0</div><div class="u">Mbps</div></div>
+        <div class="phase" id="phase">Apăsați „Start test”</div>
+      </div>
+      <div>
+        <div class="tiles">
+          <div class="tile"><div class="k"><span class="dot" style="background:var(--down)"></span>Download</div><div class="v" id="tDown">–<small>Mbps</small></div><div class="s" id="sDown"></div></div>
+          <div class="tile"><div class="k"><span class="dot" style="background:var(--up)"></span>Upload</div><div class="v" id="tUp">–<small>Mbps</small></div><div class="s" id="sUp"></div></div>
+          <div class="tile"><div class="k">Ping internet</div><div class="v" id="tPing">–<small>ms</small></div><div class="s" id="sPing"></div></div>
+          <div class="tile"><div class="k">Jitter</div><div class="v" id="tJit">–<small>ms</small></div><div class="s">variația ping-ului</div></div>
+          <div class="tile"><div class="k">Pierderi pachete</div><div class="v" id="tLoss">–<small>%</small></div><div class="s">spre internet (1.1.1.1)</div></div>
+          <div class="tile"><div class="k">Ping router</div><div class="v" id="tGw">–<small>ms</small></div><div class="s" id="sGw"></div></div>
+        </div>
+        <div class="bar"><i id="prog"></i></div>
+        <div class="actions">
+          <button class="btn go" id="startBtn">Start test</button>
+          <button class="btn" id="printBtn" disabled>Printează / PDF raport</button>
+          <button class="btn" id="refreshBtn">Reîmprospătează rețeaua</button>
+          <span class="muted" id="srv"></span>
+        </div>
+        <div class="msg" id="msg"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card c5">
+    <h2>Provider (ISP)</h2>
+    <div class="big" id="ispName">–</div>
+    <dl class="kv" id="ispKV"></dl>
+  </section>
+
+  <section class="card c7">
+    <h2>Grafic viteză</h2>
+    <canvas id="chart"></canvas>
+    <div class="legend"><span><span class="dot" style="background:var(--down)"></span> Download</span><span><span class="dot" style="background:var(--up)"></span> Upload</span><span id="chartInfo"></span></div>
+  </section>
+
+  <section class="card c6">
+    <h2>Rețea locală</h2>
+    <dl class="kv" id="lanKV"><dd class="muted">Se citesc datele…</dd></dl>
+  </section>
+
+  <section class="card c6">
+    <h2>Wi-Fi</h2>
+    <dl class="kv" id="wifiKV"></dl>
+  </section>
+
+  <section class="card c12">
+    <h2>Diagnostic</h2>
+    <ul class="diag" id="diag"><li class="muted" style="border-color:var(--line)">Rulați un test pentru diagnostic.</li></ul>
+    <div class="uses" id="uses"></div>
+  </section>
+
+  <section class="card c12">
+    <h2 style="display:flex;justify-content:space-between;align-items:center">Istoric teste <button class="btn sm" id="clearBtn">Șterge istoricul</button></h2>
+    <div id="hist"></div>
+  </section>
+</main>
+
+<div id="report"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const post = (u, body) => fetch(u, {method:'POST', headers:{'X-App':'1','Content-Type':'application/json'}, body: JSON.stringify(body||{})});
+const fmt = (v, d=1) => (v == null || v < 0 || isNaN(v)) ? '–' : Number(v).toLocaleString('ro-RO', {minimumFractionDigits:d, maximumFractionDigits:d});
+const fmtMbps = v => v == null || v < 0 ? '–' : (v >= 100 ? fmt(v,0) : fmt(v,1));
+
+let local = null, state = null, history = [], lastResult = null, polling = null;
+
+// ---------- Indicator (gauge) ----------
+const STEPS = [0,5,10,25,50,100,250,500,1000];
+const A0 = 135, SWEEP = 270, CX = 155, CY = 150, R = 118;
+function frac(v){
+  if (v <= 0) return 0;
+  for (let i = 1; i < STEPS.length; i++) if (v <= STEPS[i]) return (i-1 + (v-STEPS[i-1])/(STEPS[i]-STEPS[i-1]))/(STEPS.length-1);
+  return 1;
+}
+function pt(a, r){ const t = a*Math.PI/180; return [CX + r*Math.cos(t), CY + r*Math.sin(t)]; }
+function arc(a1, a2, r){ const [x1,y1]=pt(a1,r),[x2,y2]=pt(a2,r); return `M${x1} ${y1} A${r} ${r} 0 ${a2-a1>180?1:0} 1 ${x2} ${y2}`; }
+function drawGauge(v, color = "#38bdf8"){
+  const f = frac(v), end = A0 + SWEEP*Math.max(f, 0.0001);
+  let s = `<path d="${arc(A0, A0+SWEEP, R)}" stroke="#263142" stroke-width="16" fill="none" stroke-linecap="round"/>`;
+  if (v > 0) s += `<path d="${arc(A0, end, R)}" stroke="${color}" stroke-width="16" fill="none" stroke-linecap="round"/>`;
+  STEPS.forEach((n,i) => { const [x,y] = pt(A0 + SWEEP*i/(STEPS.length-1), R-30); s += `<text x="${x}" y="${y+4}" fill="#8b98a9" font-size="11" text-anchor="middle">${n}</text>`; });
+  $('gsvg').innerHTML = s;
+  $('gnum').textContent = v > 0 ? fmtMbps(v) : '0';
+}
+drawGauge(0);
+
+// ---------- Grafic ----------
+function drawChart(down, up){
+  const c = $('chart'), dpr = window.devicePixelRatio || 1, w = c.clientWidth, h = c.clientHeight;
+  c.width = w*dpr; c.height = h*dpr;
+  const g = c.getContext('2d'); g.scale(dpr,dpr); g.clearRect(0,0,w,h);
+  const all = [...down, ...up].map(p => p.v), max = Math.max(10, ...all) * 1.12, tmax = 12;
+  const L = 44, B = 22, T = 8, W = w-L-8, H = h-B-T;
+  g.strokeStyle = '#263142'; g.fillStyle = '#8b98a9'; g.font = '11px Segoe UI'; g.lineWidth = 1;
+  for (let i = 0; i <= 4; i++){ const y = T + H - H*i/4; g.beginPath(); g.moveTo(L,y); g.lineTo(L+W,y); g.stroke(); g.fillText(fmtMbps(max*i/4), 4, y+4); }
+  for (let s = 0; s <= tmax; s += 2){ g.fillText(s+'s', L + W*s/tmax - 6, h-5); }
+  const line = (pts, col) => {
+    if (pts.length < 2) return;
+    g.beginPath(); pts.forEach((p,i) => { const x = L + W*Math.min(p.t,tmax)/tmax, y = T + H - H*p.v/max; i ? g.lineTo(x,y) : g.moveTo(x,y); });
+    g.strokeStyle = col; g.lineWidth = 2.2; g.stroke();
+    g.lineTo(L + W*Math.min(pts[pts.length-1].t,tmax)/tmax, T+H); g.lineTo(L + W*pts[0].t/tmax, T+H); g.closePath();
+    g.globalAlpha = .12; g.fillStyle = col; g.fill(); g.globalAlpha = 1;
+  };
+  line(down, '#38bdf8'); line(up, '#a78bfa');
+}
+
+// ---------- Rețea locală ----------
+function kv(el, rows){
+  rows = rows.filter(r => r && r[1] !== undefined && r[1] !== null && r[1] !== '');
+  $(el).innerHTML = rows.length ? rows.map(([k,v,raw]) => `<dt>${esc(k)}</dt><dd>${raw ? v : esc(v)}</dd>`).join('') : '<dd class="muted">–</dd>';
+}
+function sigBars(p){ const n = p >= 80 ? 4 : p >= 60 ? 3 : p >= 40 ? 2 : p > 0 ? 1 : 0; return `<span class="sig">${[6,9,12,15].map((hh,i)=>`<i style="height:${hh}px" class="${i<n?'on':''}"></i>`).join('')}</span>`; }
+function linkTxt(m){ if (!m) return ''; return m >= 1000 ? fmt(m/1000, m%1000?1:0)+' Gbps' : fmt(m,0)+' Mbps'; }
+
+function renderLocal(li){
+  if (!li) return;
+  const p = li.primary || {};
+  kv('lanKV', [
+    ['Tip conexiune', li.connType || 'necunoscut'],
+    ['Adaptor', p.name],
+    ['Viteză legătură', linkTxt(p.linkMbps)],
+    ['IP local', (p.ips||[]).join(', ')],
+    ['Mască', p.mask],
+    ['Gateway (router)', li.gateway],
+    ['DNS', (li.dns||[]).join(', ')],
+    ['DHCP', p.name ? (p.dhcp ? 'Da' + (p.dhcpServer ? ' (server ' + p.dhcpServer + ')' : '') : 'Nu — IP fix') : ''],
+    ['MAC', p.mac],
+    ['MTU', p.mtu || ''],
+    ['IPv6', li.ipv6 ? 'Da — ' + li.ipv6Addr : 'Nu (doar IPv4)'],
+    ['Nume PC', li.hostname],
+    ['Alte adaptoare', (li.adapters||[]).filter(a => !a.primary).map(a => esc(a.name) + ' <span class="muted">(' + esc(a.type) + ', ' + esc((a.ips||[]).join(', ')) + ')</span>').join('<br>'), true],
+    ['Notă', li.note],
+  ]);
+  const w = li.wifi;
+  if (!w) { $('wifiKV').innerHTML = `<dd class="muted" style="grid-column:span 2">${li.connType && li.connType !== 'Wi-Fi' ? 'PC-ul e conectat prin ' + esc(li.connType) + ' — nu se folosește Wi-Fi.' : 'Nicio conexiune Wi-Fi activă.'}</dd>`; return; }
+  kv('wifiKV', [
+    ['Rețea (SSID)', `<b>${esc(w.ssid)}</b>`, true],
+    ['Semnal', `${w.signal}% · ${w.rssi} dBm ${sigBars(w.signal)}`, true],
+    ['Bandă / canal', [w.band, w.channel ? 'canal ' + w.channel : ''].filter(Boolean).join(' · ')],
+    ['Standard', w.standard],
+    ['Viteză Rx / Tx', `${fmt(w.rxMbps,0)} / ${fmt(w.txMbps,0)} Mbps`],
+    ['Securitate', [w.security, w.cipher].filter(Boolean).join(' · ')],
+    ['BSSID (router/AP)', w.bssid],
+    ['Placă Wi-Fi', w.interface],
+  ]);
+}
+
+async function loadLocal(){
+  try { local = await (await fetch('/api/local')).json(); renderLocal(local); } catch(e){}
+}
+
+// ---------- Provider ----------
+function renderProvider(p){
+  if (!p || (!p.isp && !p.ip)) return;
+  $('ispName').textContent = p.isp || 'necunoscut';
+  kv('ispKV', [
+    ['IP public', p.ip],
+    ['ASN', p.asn],
+    ['Locație', [p.city, p.region, p.country].filter(Boolean).join(', ')],
+    ['Server de test', p.colo ? `Cloudflare ${p.colo}${p.coloName ? ' — ' + p.coloName : ''}` : ''],
+  ]);
+  $('srv').textContent = p.colo ? 'Server: ' + (p.coloName || p.colo) : '';
+}
+
+// ---------- Rezultate ----------
+function q(v, good, ok){ return v < 0 || v == null ? '' : v <= good ? 'excelent' : v <= ok ? 'bun' : 'ridicat'; }
+function renderResult(r, live){
+  if (!r) return;
+  renderProvider(r.provider);
+  $('tDown').innerHTML = fmtMbps(r.downMbps || (live && state.phase==='download' ? state.current : 0) || -1) + '<small>Mbps</small>';
+  $('tUp').innerHTML = fmtMbps(r.upMbps || (live && state.phase==='upload' ? state.current : 0) || -1) + '<small>Mbps</small>';
+  $('sDown').textContent = r.downMbps ? `vârf ${fmtMbps(r.downPeak)} · ${fmt(r.downMB,0)} MB` : '';
+  $('sUp').textContent = r.upMbps ? `vârf ${fmtMbps(r.upPeak)} · ${fmt(r.upMB,0)} MB` : '';
+  const hasPing = r.pingMs > 0;
+  $('tPing').innerHTML = (hasPing ? fmt(r.pingMs, r.pingMs < 10 ? 1 : 0) : '–') + '<small>ms</small>';
+  $('sPing').textContent = hasPing ? [q(r.pingMs,20,50), r.downLatency > 0 ? `sub încărcare: ${fmt(r.downLatency,0)} / ${fmt(r.upLatency,0)} ms` : ''].filter(Boolean).join(' · ') : '';
+  $('tJit').innerHTML = (hasPing ? fmt(r.jitterMs,1) : '–') + '<small>ms</small>';
+  $('tLoss').innerHTML = (r.lossPct >= 0 && hasPing ? fmt(r.lossPct,0) : '–') + '<small>%</small>';
+  $('tGw').innerHTML = (r.gwPingMs > 0 ? fmt(r.gwPingMs, r.gwPingMs < 10 ? 1 : 0) : '–') + '<small>ms</small>';
+  $('sGw').textContent = r.gwPingMs > 0 ? `pierderi ${fmt(r.gwLossPct,0)}% · jitter ${fmt(r.gwJitterMs,1)} ms` : (r.gwLossPct === 100 ? 'routerul nu răspunde la ping' : '');
+}
+
+function diagnose(r){
+  const out = [], li = r.local || local || {}, w = li.wifi, p = li.primary || {};
+  const add = (cls, t) => out.push([cls, t]);
+  if (r.gwLossPct > 0 && r.gwLossPct < 100) add('b', `Pierderi de pachete până la router (${fmt(r.gwLossPct,0)}%) — problema e în rețeaua locală (Wi-Fi, cablu sau router), nu la provider.`);
+  else if (r.lossPct > 2) add('b', `Pierderi de pachete spre internet (${fmt(r.lossPct,0)}%), dar nu și până la router — problemă probabilă pe linia providerului.`);
+  else if (r.lossPct > 0) add('w', `Pierderi ușoare de pachete spre internet (${fmt(r.lossPct,0)}%).`);
+  if (r.gwPingMs > 15 && w) add('w', `Ping mare până la router (${fmt(r.gwPingMs,0)} ms) — legătura Wi-Fi e instabilă sau aglomerată.`);
+  if (w && w.signal < 40) add('b', `Semnal Wi-Fi slab (${w.signal}%, ${w.rssi} dBm) — apropiați PC-ul de router sau folosiți un repetor/mesh.`);
+  else if (w && w.signal < 60) add('w', `Semnal Wi-Fi mediu (${w.signal}%) — viteza poate fi limitată de distanța față de router.`);
+  if (w && w.band === '2,4 GHz') add('w', `PC-ul e conectat pe 2,4 GHz (canal ${w.channel}). Pe 5 GHz viteza e de obicei mult mai mare, dacă routerul și placa o permit.`);
+  if (w && /802\.11[bg]$/.test(w.standard)) add('b', `Standard Wi-Fi vechi (${w.standard}) — placa sau routerul limitează viteza la ~20–50 Mbps.`);
+  if (w && w.rxMbps && r.downMbps > w.rxMbps*0.6) add('w', `Viteza de download e aproape de viteza legăturii Wi-Fi (${fmt(w.rxMbps,0)} Mbps) — Wi-Fi-ul e factorul limitator.`);
+  if (!w && p.linkMbps && p.linkMbps <= 100 && r.downMbps > p.linkMbps*0.75) add('b', `Placa de rețea negociază doar ${linkTxt(p.linkMbps)} și download-ul e la limita ei — verificați cablul (Cat5e/Cat6, toate cele 8 fire) și portul de la router/switch.`);
+  if (w && w.security && /Deschis|WEP|WPA-/.test(w.security)) add('w', `Securitate Wi-Fi slabă (${w.security}) — recomandat WPA2/WPA3-Personal.`);
+  const bloat = Math.max(r.downLatency, r.upLatency) - r.pingMs;
+  if (r.pingMs > 0 && r.downLatency > 0 && bloat > 100) add('w', `Ping-ul crește mult sub încărcare (+${fmt(bloat,0)} ms, „bufferbloat”) — la apeluri video sau jocuri se simte lag când cineva descarcă. Ajută SQM/QoS pe router.`);
+  if (r.pingMs > 60) add('w', `Ping ridicat spre internet (${fmt(r.pingMs,0)} ms).`);
+  if (r.jitterMs > 30) add('w', `Jitter mare (${fmt(r.jitterMs,0)} ms) — apelurile video și jocurile pot sacada.`);
+  if (r.downMbps > 0 && r.downMbps < 10) add('b', `Download foarte mic (${fmtMbps(r.downMbps)} Mbps).`);
+  if (r.upMbps > 0 && r.downMbps > 0 && r.upMbps < 2) add('w', `Upload mic (${fmtMbps(r.upMbps)} Mbps) — trimiterea de fișiere și camerele video pot fi lente.`);
+  if (li.dns && li.dns.length && li.gateway && li.dns.length === 1 && li.dns[0] === li.gateway) add('ok', `DNS-ul e servit de router (${li.dns[0]}).`);
+  if (!out.some(o => o[0] !== 'ok')) out.unshift(['ok', 'Conexiunea arată bine — nicio problemă detectată.']);
+  return out;
+}
+function uses(r){
+  const d = r.downMbps, u = r.upMbps, p = r.pingMs || 999;
+  return [
+    ['Navigare, e-mail', d >= 3],
+    ['Video HD', d >= 8],
+    ['Video 4K', d >= 25],
+    ['Apeluri video', d >= 4 && u >= 2 && p < 150],
+    ['Jocuri online', d >= 5 && p < 60 && r.jitterMs < 30],
+    ['Camere supraveghere în cloud', u >= 5],
+    ['Mai mulți utilizatori simultan', d >= 50],
+  ];
+}
+function renderDiag(r){
+  if (!r || !(r.downMbps || r.upMbps)) return;
+  $('diag').innerHTML = diagnose(r).map(([c,t]) => `<li class="${c==='ok'?'':c}">${esc(t)}</li>`).join('');
+  $('uses').innerHTML = '<span class="muted" style="border:0;background:none;padding-left:0">Potrivit pentru:</span>' + uses(r).map(([t,ok]) => `<span class="${ok?'':'no'}">${esc(t)}</span>`).join('');
+}
+
+// ---------- Test ----------
+async function poll(){
+  try { state = await (await fetch('/api/status')).json(); } catch(e){ return; }
+  const s = state;
+  $('prog').style.width = (s.progress*100).toFixed(1) + '%';
+  $('phase').textContent = s.label || '';
+  const col = s.phase === 'upload' ? '#a78bfa' : '#38bdf8';
+  drawGauge(s.running ? s.current : (s.result && s.result.downMbps) || 0, s.running ? col : '#38bdf8');
+  drawChart(s.down || [], s.up || []);
+  if (s.result) { renderResult(s.result, s.running); }
+  $('msg').className = 'msg' + (s.error ? '' : ' w');
+  $('msg').textContent = s.error || s.warning || '';
+  setRunning(s.running);
+  if (s.running && !polling) polling = setInterval(poll, 250);
+  if (!s.running) {
+    clearInterval(polling); polling = null;
+    if (s.phase === 'done' && s.result) {
+      lastResult = s.result; renderDiag(lastResult); $('printBtn').disabled = false;
+      $('chartInfo').textContent = `${fmt(lastResult.downMB + lastResult.upMB,0)} MB transferați`;
+      if (lastResult.local) { local = lastResult.local; renderLocal(local); }
+      loadHistory();
+    }
+  }
+}
+function setRunning(on){
+  const b = $('startBtn');
+  b.textContent = on ? 'Oprește' : 'Start test';
+  b.className = 'btn ' + (on ? 'stop' : 'go');
+  $('refreshBtn').disabled = on;
+}
+$('startBtn').onclick = async () => {
+  if (state && state.running) { await post('/api/stop'); return; }
+  try { localStorage.setItem('tech', $('tech').value); } catch(e){}
+  ['tDown','tUp','tPing','tJit','tLoss','tGw'].forEach(id => $(id).innerHTML = '–<small>' + (id==='tDown'||id==='tUp' ? 'Mbps' : id==='tLoss' ? '%' : 'ms') + '</small>');
+  ['sDown','sUp','sPing','sGw','chartInfo'].forEach(id => $(id).textContent = '');
+  $('printBtn').disabled = true;
+  await post('/api/start', {client: $('client').value.trim(), tech: $('tech').value.trim()});
+  setRunning(true);
+  if (!polling) polling = setInterval(poll, 250);
+  poll();
+};
+$('refreshBtn').onclick = loadLocal;
+$('printBtn').onclick = () => lastResult && printReport(lastResult);
+
+// ---------- Istoric ----------
+async function loadHistory(){
+  try { history = await (await fetch('/api/history')).json(); } catch(e){ history = []; }
+  if (!history.length) { $('hist').innerHTML = '<div class="empty">Niciun test salvat încă.</div>'; return; }
+  $('hist').innerHTML = `<table><thead><tr><th>Data</th><th>Client</th><th>Provider</th><th>Conexiune</th><th>Download</th><th>Upload</th><th>Ping</th><th>Pierderi</th><th></th></tr></thead><tbody>` +
+    history.map((r,i) => `<tr><td>${esc(r.time)}</td><td>${esc(r.client || '–')}</td><td>${esc(r.provider && r.provider.isp)}</td>
+    <td>${esc(r.local && r.local.connType || '')}${r.local && r.local.wifi ? ' · ' + esc(r.local.wifi.ssid) + ' ' + r.local.wifi.signal + '%' : ''}</td>
+    <td>${fmtMbps(r.downMbps)} Mbps</td><td>${fmtMbps(r.upMbps)} Mbps</td><td>${r.pingMs > 0 ? fmt(r.pingMs,0) + ' ms' : '–'}</td><td>${r.lossPct >= 0 ? fmt(r.lossPct,0) + '%' : '–'}</td>
+    <td><button class="btn sm" data-i="${i}">Raport</button></td></tr>`).join('') + '</tbody></table>';
+  $('hist').querySelectorAll('button[data-i]').forEach(b => b.onclick = () => printReport(history[+b.dataset.i]));
+}
+$('clearBtn').onclick = async () => {
+  if (!history.length || !confirm('Ștergeți tot istoricul testelor?')) return;
+  await post('/api/history'); loadHistory();
+};
+
+// ---------- Raport printabil ----------
+function printReport(r){
+  const li = r.local || {}, p = li.primary || {}, w = li.wifi, pr = r.provider || {};
+  const row = (k, v) => v === '' || v == null ? '' : `<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`;
+  $('report').innerHTML = `
+  <div class="rh"><div><b>INFO PC ELECTRIC S.R.L.</b><br>Rediu, jud. Neamț · www.infopc.ro · magazin.infopc.ro</div><div style="text-align:right">Raport nr. ${esc(String(r.id).slice(-6))}<br>${esc(r.time)}</div></div>
+  <h1>Raport test viteză internet</h1>
+  <div>${r.client ? 'Client: <b>' + esc(r.client) + '</b> · ' : ''}${r.tech ? 'Tehnician: ' + esc(r.tech) : ''}</div>
+  <div class="res">
+    <div><span>Download</span><strong>${fmtMbps(r.downMbps)}</strong> Mbps</div>
+    <div><span>Upload</span><strong>${fmtMbps(r.upMbps)}</strong> Mbps</div>
+    <div><span>Ping</span><strong>${r.pingMs > 0 ? fmt(r.pingMs,0) : '–'}</strong> ms</div>
+    <div><span>Jitter</span><strong>${r.pingMs > 0 ? fmt(r.jitterMs,1) : '–'}</strong> ms</div>
+    <div><span>Pierderi</span><strong>${r.lossPct >= 0 ? fmt(r.lossPct,0) : '–'}</strong> %</div>
+  </div>
+  <h3>Provider</h3><table>
+    ${row('Provider (ISP)', pr.isp)}${row('ASN', pr.asn)}${row('IP public', pr.ip)}
+    ${row('Locație', [pr.city, pr.region, pr.country].filter(Boolean).join(', '))}
+    ${row('Server de test', pr.colo ? 'Cloudflare ' + pr.colo + (pr.coloName ? ' — ' + pr.coloName : '') : '')}
+  </table>
+  <h3>Detalii măsurători</h3><table>
+    ${row('Ping sub încărcare (download / upload)', r.downLatency > 0 ? fmt(r.downLatency,0) + ' / ' + fmt(r.upLatency,0) + ' ms' : '')}
+    ${row('Ping până la router', r.gwPingMs > 0 ? fmt(r.gwPingMs,1) + ' ms, pierderi ' + fmt(r.gwLossPct,0) + '%' : (r.gwLossPct === 100 ? 'routerul nu răspunde la ping' : ''))}
+    ${row('Vârf download / upload', fmtMbps(r.downPeak) + ' / ' + fmtMbps(r.upPeak) + ' Mbps')}
+    ${row('Date transferate', fmt(r.downMB,0) + ' MB download, ' + fmt(r.upMB,0) + ' MB upload')}
+    ${row('Metodă ping', r.pingMethod)}
+  </table>
+  <div class="two"><div><h3>Rețea locală</h3><table>
+    ${row('Tip conexiune', li.connType)}${row('Adaptor', p.name)}${row('Viteză legătură', linkTxt(p.linkMbps))}
+    ${row('IP local / mască', (p.ips||[]).join(', ') + (p.mask ? ' / ' + p.mask : ''))}${row('Gateway', li.gateway)}
+    ${row('DNS', (li.dns||[]).join(', '))}${row('DHCP', p.name ? (p.dhcp ? 'Da' : 'Nu (IP fix)') : '')}${row('MAC', p.mac)}
+    ${row('IPv6', li.ipv6 ? 'Da' : 'Nu')}${row('Nume PC', li.hostname)}
+  </table></div>
+  ${w ? `<div><h3>Wi-Fi</h3><table>
+    ${row('Rețea (SSID)', w.ssid)}${row('Semnal', w.signal + '% (' + w.rssi + ' dBm)')}
+    ${row('Bandă / canal', [w.band, w.channel ? 'canal ' + w.channel : ''].filter(Boolean).join(', '))}
+    ${row('Standard', w.standard)}${row('Viteză legătură Rx / Tx', fmt(w.rxMbps,0) + ' / ' + fmt(w.txMbps,0) + ' Mbps')}
+    ${row('Securitate', [w.security, w.cipher].filter(Boolean).join(', '))}${row('BSSID', w.bssid)}
+  </table></div>` : ''}</div>
+  <h3>Diagnostic</h3><ul>${diagnose(r).map(([c,t]) => `<li>${esc(t)}</li>`).join('')}</ul>
+  <div>Potrivit pentru: ${uses(r).filter(u => u[1]).map(u => esc(u[0])).join(', ') || '–'}</div>
+  <div class="sign"><div>Tehnician${r.tech ? ': ' + esc(r.tech) : ''}</div><div>Client${r.client ? ': ' + esc(r.client) : ''}</div></div>
+  <div class="foot">Rezultatele reflectă momentul testului și pot varia în funcție de încărcarea rețelei. Generat cu Test Viteză Internet — Info PC Electric.</div>`;
+  const prev = document.title;
+  document.title = 'Raport viteza internet ' + (r.client ? r.client + ' ' : '') + r.time.slice(0,10);
+  window.print();
+  document.title = prev;
+}
+
+// ---------- Pornire ----------
+try { $('tech').value = localStorage.getItem('tech') || ''; } catch(e){}
+loadLocal(); loadHistory(); poll();
+setInterval(() => fetch('/api/ping').catch(()=>{}), 10000);
+window.addEventListener('pagehide', () => navigator.sendBeacon && fetch('/api/quit', {method:'POST', headers:{'X-App':'1'}, keepalive:true}));
+window.addEventListener('resize', () => state && drawChart(state.down||[], state.up||[]));
+</script>
+</body>
+</html>
