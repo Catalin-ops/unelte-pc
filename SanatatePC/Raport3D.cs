@@ -358,8 +358,8 @@ namespace InfoPcDisk
                         case '<': sb.Append("\\u003c"); break;
                         case '>': sb.Append("\\u003e"); break;
                         case '&': sb.Append("\\u0026"); break;
-                        case ' ': sb.Append("\\u2028"); break;
-                        case ' ': sb.Append("\\u2029"); break;
+                        case '\u2028': sb.Append("\\u2028"); break;
+                        case '\u2029': sb.Append("\\u2029"); break;
                         default:
                             if (ch < 0x20) sb.Append("\\u").Append(((int)ch).ToString("x4")); else sb.Append(ch);
                             break;
