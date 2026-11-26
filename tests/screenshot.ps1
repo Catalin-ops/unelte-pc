@@ -30,3 +30,14 @@ Shot 'SanatatePC' 'sanatate_pro_disc.png' 20 '--pagina=discuri'
 Remove-Item 'dist\licenta.spc' -Force
 Shot 'RecuperareFisiere' 'recuperare.png' 10
 Shot 'GeneratorLicente' 'generator.png' 6
+
+# raportul 3D generat de smoke.ps1, randat cu Edge (WebGL prin SwiftShader)
+$edge = @("${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe", "$env:ProgramFiles\Microsoft\Edge\Application\msedge.exe") | Where-Object { Test-Path $_ } | Select-Object -First 1
+$r3 = Join-Path (Resolve-Path 'shots').Path 'Raport3D_test.html'
+if ($edge -and (Test-Path $r3)) {
+    foreach ($v in @(@('raport3d.png', '1600,1000'), @('raport3d_telefon.png', '412,900'))) {
+        $out = Join-Path (Resolve-Path 'shots').Path $v[0]
+        Start-Process -FilePath $edge -Wait -ArgumentList @('--headless=new', "--user-data-dir=$env:TEMP\edge3d", '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--hide-scrollbars', "--window-size=$($v[1])", '--virtual-time-budget=8000', "--screenshot=$out", ('file:///' + ($r3 -replace '\\', '/')))
+        Write-Host "captura $($v[0]): $(Test-Path $out)"
+    }
+}
