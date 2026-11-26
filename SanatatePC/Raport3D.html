@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Raport 3D · Sănătate PC</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Raport 3D generat de Sanatate PC (Info PC Electric).
+   Aplicatia inlocuieste DATE_RAPORT cu datele calculatorului si THREE_JS cu biblioteca three.js (MIT). */
+:root{color-scheme:dark;--bg:#08090a;--pan:rgba(17,19,19,.82);--s2:#1b1e1d;--ln:#272b29;--ink:#eef0ea;--mut:#8e948d;--info:#5f6862;--ok:#7fd39b;--lime:#d6f27a;--amb:#f0c93e;--red:#f0555c}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0;background:var(--bg);color:var(--ink)}
+body{font:16px/1.5 Outfit,"Segoe UI",system-ui,sans-serif;overflow-x:clip;font-variant-numeric:tabular-nums}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+button:focus-visible,a:focus-visible{outline:2px solid var(--lime);outline-offset:2px}
+a{color:var(--ink)}
+.app{position:relative;display:grid;grid-template-columns:minmax(260px,320px) minmax(0,1fr) minmax(290px,360px);grid-template-rows:auto minmax(0,1fr) auto;grid-template-areas:"top top top" "left mid right" "dock dock dock";gap:14px;padding:14px;height:100vh;height:100dvh;min-height:660px}
+.stage{position:absolute;inset:0;z-index:0;background:radial-gradient(60% 55% at 50% 52%,#121615 0,var(--bg) 70%)}
+.stage canvas{display:block;width:100%;height:100%;touch-action:pan-y;cursor:grab}
+.pan{position:relative;z-index:2;background:var(--pan);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--ln);border-radius:20px}
+.top{grid-area:top;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:8px 10px 8px 16px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:500}
+.brand img{height:30px;max-width:110px;object-fit:contain;border-radius:6px;background:#fff;padding:2px}
+.brand small{color:var(--mut);font-weight:400;font-size:15px}
+.top .sp{flex:1}
+.client{color:var(--mut);font-size:15px;white-space:nowrap}
+.btn{min-height:44px;padding:0 16px;border-radius:12px;border:1px solid var(--ln);background:var(--s2);white-space:nowrap}
+.btn:hover{border-color:#3a3f3c}
+.left,.right{overflow:auto;padding:20px;scrollbar-width:thin}
+.left{grid-area:left}.right{grid-area:right}
+.kick{color:var(--mut);font-size:14px;margin:0 0 6px}
+h1{font-size:clamp(26px,2.3vw,34px);line-height:1.08;font-weight:500;margin:0 0 10px;text-wrap:balance}
+h2{font-size:22px;line-height:1.15;font-weight:500;margin:0}
+h3{font-size:16px;font-weight:500;margin:18px 0 4px}
+.sub{color:var(--mut);font-size:15px;margin:0 0 18px}
+.hl{display:grid;grid-template-columns:92px minmax(0,1fr);gap:16px;align-items:center;padding:16px 0;border-block:1px solid var(--ln)}
+.ring{position:relative;width:92px;height:92px}
+.ring svg{position:absolute;inset:0}
+.ring b{position:absolute;inset:0;display:grid;place-items:center;font-size:30px;font-weight:500}
+.stat{font-size:14px;color:var(--mut);line-height:1.35}
+.stat strong{display:block;font-size:19px;color:var(--ink);font-weight:500}
+.rgs{display:grid;gap:2px;margin:14px 0}
+.rg{display:grid;grid-template-columns:12px minmax(0,1fr) auto;align-items:center;gap:10px;min-height:44px;padding:0 10px;border-radius:10px;text-align:left}
+.rg:hover,.rg.on{background:var(--s2)}
+.rg.on{box-shadow:inset 0 0 0 1px var(--lime)}
+.rg b{font-weight:400;font-size:14px;white-space:nowrap;color:var(--mut)}
+.rg.warn b{color:var(--amb)}.rg.crit b{color:var(--red)}
+.d{width:10px;height:10px;border-radius:50%;background:var(--info);display:block;flex:none}
+.d.ok{background:var(--ok)}.d.warn{background:var(--amb)}.d.crit{background:var(--red);box-shadow:0 0 10px var(--red)}
+.firm{margin-top:16px;padding-top:16px;border-top:1px solid var(--ln);font-size:14px;color:var(--mut);display:grid;gap:2px}
+.firm strong{color:var(--ink);font-weight:500;font-size:16px}
+.note{font-size:13px;color:var(--mut);margin:12px 0 0}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:3px 10px;border-radius:20px;border:1px solid var(--ln);color:var(--mut);white-space:nowrap}
+.chip.ok{color:var(--ok);border-color:rgba(127,211,155,.4)}.chip.warn{color:var(--amb);border-color:rgba(240,201,62,.4)}.chip.crit{color:var(--red);border-color:rgba(240,85,92,.45)}
+.rh{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:4px}
+.part{color:var(--mut);font-size:15px;margin:2px 0 12px}
+.cd{padding:12px 0;border-top:1px solid var(--ln)}
+.cd header{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.cd header b{font-weight:500}
+.cd header small{display:block;color:var(--mut);font-size:13px}
+.kv{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;font-size:14px;margin-top:8px}
+.kv span{color:var(--mut)}.kv em{font-style:normal;text-align:right;overflow-wrap:anywhere}
+.cd ul{margin:8px 0 0;padding-left:18px;font-size:14px;color:#d9ddd5}
+.fd{display:grid;grid-template-columns:12px minmax(0,1fr);gap:4px 12px;width:100%;text-align:left;padding:12px 8px;border-top:1px solid var(--ln)}
+.fd .d{margin-top:7px}
+.fd em{font-style:normal;color:var(--mut);font-size:14px;grid-column:2}
+.fd small{grid-column:2;font-size:13px;color:var(--lime)}
+.rec{margin-top:14px;padding:12px 14px;border-radius:12px;background:var(--s2);font-size:15px;white-space:pre-line}
+.rec small{display:block;color:var(--mut);font-size:13px}
+.back{color:var(--mut);font-size:14px;min-height:36px;margin:-6px 0 6px -4px;padding:0 4px}
+.back:hover{color:var(--ink)}
+.fig{position:relative;height:120px;margin:6px 0 2px}
+.fig svg{position:absolute;inset:0;width:100%;height:100%}
+.dock{grid-area:dock;justify-self:center;width:min(100%,860px);display:flex;gap:6px;padding:8px;overflow-x:auto;scroll-snap-type:x mandatory;align-items:center}
+.sc{flex:0 1 150px;scroll-snap-align:start;display:grid;gap:2px;text-align:left;padding:10px 14px;border-radius:14px;min-height:44px}
+.sc:hover{background:var(--s2)}
+.sc.on{background:var(--s2);box-shadow:inset 0 0 0 1px var(--lime)}
+.sc span{font-size:14px;color:var(--mut);white-space:nowrap}
+.sc b{font-size:22px;font-weight:500;line-height:1.1}
+.sc b small{font-size:13px;color:var(--mut);font-weight:400}
+.dock p{margin:0 10px;font-size:14px;color:var(--mut)}
+.hint{position:absolute;left:50%;top:86px;transform:translateX(-50%);font-size:13px;color:var(--mut);pointer-events:none;white-space:nowrap;z-index:1}
+.cos{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1}
+.co{position:absolute;left:0;top:0;width:0;height:0;transition:opacity .3s}
+.co .in{position:absolute;top:0;left:0;display:flex;align-items:center;transform:translate(-7px,-50%);pointer-events:auto}
+.co.lf .in{flex-direction:row-reverse;transform:translate(calc(-100% + 7px),-50%)}
+.co .dt{width:14px;height:14px;border-radius:50%;border:2px solid var(--amb);background:rgba(240,201,62,.25);flex:none}
+.co.crit .dt{border-color:var(--red);background:rgba(240,85,92,.3);animation:pl 1.6s infinite}
+.co .ln{width:34px;border-top:1px solid var(--amb);flex:none}
+.co.crit .ln{border-color:var(--red)}
+.co button{padding:6px 11px;border-radius:10px;background:rgba(12,14,14,.86);border:1px solid rgba(240,201,62,.45);text-align:left;line-height:1.25;white-space:nowrap;max-width:240px;overflow:hidden;text-overflow:ellipsis}
+.co.crit button{border-color:rgba(240,85,92,.55)}
+.co button b{display:block;font-weight:500;font-size:14px}
+.co button small{font-size:13px;color:var(--mut)}
+@keyframes pl{0%{box-shadow:0 0 0 0 rgba(240,85,92,.6)}50%{box-shadow:0 0 0 7px rgba(240,85,92,0)}}
+.nogl{position:absolute;inset:0;display:grid;place-items:center;color:var(--mut);padding:20px;text-align:center}
+@media(max-width:980px){
+ .app{display:flex;flex-direction:column;height:auto;min-height:0;padding:10px;gap:10px}
+ .stage{position:relative;inset:auto;order:2;height:clamp(380px,64vh,580px);border-radius:20px;border:1px solid var(--ln);overflow:hidden}
+ .top{order:1}.dock{order:3;width:100%}.right{order:4}.left{order:5}
+ .left,.right{overflow:visible}
+ .hint{top:auto;bottom:12px}
+}
+@media(max-width:600px){.client{display:none}}
+@media(prefers-reduced-motion:reduce){.co.crit .dt{animation:none}}
+@media print{.stage,.dock,.top .btn{display:none}.app{display:block;height:auto}.pan{background:none;border:0;backdrop-filter:none}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="stage" id="stage">
+    <canvas id="cv" aria-label="Model 3D al calculatorului; trage pentru a roti, apasă pe o componentă pentru detalii"></canvas>
+    <div class="cos" id="cos"></div>
+    <p class="hint" id="hint">Trage ca să rotești · apasă pe o componentă</p>
+  </div>
+  <header class="pan top">
+    <div class="brand" id="brand"></div>
+    <span class="sp"></span>
+    <span class="client" id="client"></span>
+    <button class="btn" id="rescan">Rescanează</button>
+  </header>
+  <aside class="pan left">
+    <p class="kick" id="kick"></p>
+    <h1 id="title"></h1>
+    <p class="sub" id="sub"></p>
+    <div class="hl">
+      <div class="ring"><svg viewBox="0 0 92 92"><circle cx="46" cy="46" r="40" fill="none" stroke="#272b29" stroke-width="7"/><circle id="arc" cx="46" cy="46" r="40" fill="none" stroke="#d6f27a" stroke-width="7" stroke-linecap="round" transform="rotate(-90 46 46)" stroke-dasharray="0 252" style="transition:stroke-dasharray .8s"/></svg><b id="hv"></b></div>
+      <div class="stat"><strong id="hd"></strong>scor de sănătate din 100</div>
+    </div>
+    <div class="rgs" id="rgs"></div>
+    <div class="firm" id="firm"></div>
+    <p class="note" id="gen"></p>
+  </aside>
+  <aside class="pan right" id="right"></aside>
+  <nav class="pan dock" id="dock" aria-label="Istoric verificări"></nav>
+</div>
+
+<script>/*THREE_JS*/</script>
+<script>
+{
+const D=/*DATE_RAPORT*/null;
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const LV=l=>l==2?'crit':l==1?'warn':l==0?'ok':'info';
+const LT=l=>l==2?'Problemă':l==1?'Atenție':l==0?'Bun':'Info';
+const fdate=s=>{const d=new Date(s);return isNaN(d)?String(s):d.toLocaleDateString('ro-RO',{day:'numeric',month:'short',year:'numeric'})};
+if(!D){document.body.innerHTML='<p style="padding:40px">Raportul nu conține date.</p>';throw 0}
+
+const H=D.hist&&D.hist.length?D.hist:[{d:D.date,score:D.score,l:D.level,verdict:D.verdict,parts:{}}];
+const last=H.length-1;
+let cur=last,sel=null,hov=null;
+const P={};D.parts.forEach(p=>P[p.id]=p);
+const pl=(p,i)=>i==last?p.l:(H[i].parts&&H[i].parts[p.id]?H[i].parts[p.id][0]:null);
+const pst=(p,i)=>i==last?p.st:(H[i].parts&&H[i].parts[p.id]?H[i].parts[p.id][1]:'Nu era la verificare');
+const psum=(p,i)=>i==last?p.sum:(H[i].parts&&H[i].parts[p.id]?H[i].parts[p.id][2]:'');
+const shown={};
+
+function renderTop(){
+  const f=D.firm||{},b=$('#brand');
+  b.innerHTML=(f.logo&&/^data:image\//.test(f.logo)?'<img alt="">':'')+`<span>${esc(f.name||'Sănătate PC')} <small>· Raport 3D</small></span>`;
+  const im=b.querySelector('img');if(im)im.src=f.logo;
+  $('#client').textContent=D.client||D.pc.model||'';
+  const fl=[];
+  if(f.name)fl.push(`<strong>${esc(f.name)}</strong>`);
+  if(f.tech)fl.push(`<span>Tehnician: ${esc(f.tech)}</span>`);
+  if(f.phone)fl.push(`<span>Telefon: <a href="tel:${esc(f.phone.replace(/[^\d+]/g,''))}">${esc(f.phone)}</a></span>`);
+  if(f.email)fl.push(`<span>E-mail: <a href="mailto:${esc(f.email)}">${esc(f.email)}</a></span>`);
+  if(f.web)fl.push(`<span><a href="${esc(/^https?:/.test(f.web)?f.web:'https://'+f.web)}">${esc(f.web)}</a></span>`);
+  if(f.addr)fl.push(`<span>${esc(f.addr)}</span>`);
+  $('#firm').innerHTML=fl.join('');
+  $('#gen').textContent=`Raport generat de Sănătate PC ${D.ver||''} pe ${D.gen||fdate(D.date)}. Valorile sunt citite din senzorii, datele SMART și jurnalele Windows ale acestui calculator.`;
+}
+
+function renderLeft(){
+  const h=H[cur];
+  $('#kick').textContent=`${D.client?D.client+' · ':''}verificare ${fdate(h.d)}`;
+  $('#title').textContent=h.verdict||'';
+  $('#sub').textContent=[D.pc.model,D.pc.os].filter(Boolean).join(' · ');
+  $('#hv').textContent=h.score;
+  $('#arc').setAttribute('stroke-dasharray',`${(h.score/100*251.3).toFixed(1)} 252`);
+  $('#arc').setAttribute('stroke',h.score<50?'#f0555c':h.score<80?'#f0c93e':'#d6f27a');
+  if(cur>0){const dl=h.score-H[cur-1].score;$('#hd').textContent=dl?`${dl>0?'+':'−'}${Math.abs(dl)} față de ${fdate(H[cur-1].d)}`:`la fel ca pe ${fdate(H[cur-1].d)}`}
+  else $('#hd').textContent=H.length>1?'Prima verificare':LT(h.l);
+  $('#rgs').innerHTML=D.parts.map(p=>{const l=pl(p,cur);return `<button class="rg ${LV(l)} ${sel==p.id?'on':''}" data-r="${esc(p.id)}"><i class="d ${LV(l)}"></i><span>${esc(p.name)}</span><b>${esc(l==null?'—':pst(p,cur))}</b></button>`}).join('');
+}
+
+function cardHtml(c){
+  return `<div class="cd"><header><span><b>${esc(c.t)}</b>${c.s?`<small>${esc(c.s)}</small>`:''}</span><span class="chip ${LV(c.l)}">${esc(c.st||LT(c.l))}</span></header>`+
+  (c.p&&c.p.length?`<div class="kv">${c.p.map(([k,v])=>`<span>${esc(k)}</span><em>${esc(v)}</em>`).join('')}</div>`:'')+
+  (c.n&&c.n.length?`<ul>${c.n.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:'')+`</div>`;
+}
+
+function renderRight(){
+  const id=sel||hov,el=$('#right'),h=H[cur];
+  if(!id||!P[id]){
+    const bad=D.parts.filter(p=>(pl(p,cur)??-1)>=1).sort((a,b)=>pl(b,cur)-pl(a,cur));
+    let s=`<p class="kick">Verificare ${esc(fdate(h.d))}</p><h2>${bad.length?`${bad.length} ${bad.length==1?'componentă cere':'componente cer'} atenție`:'Nicio problemă găsită'}</h2><p class="part">Apasă pe o componentă din model sau din listă pentru detalii.</p>`;
+    s+=bad.map(p=>{const l=pl(p,cur);return `<button class="fd" data-r="${esc(p.id)}"><i class="d ${LV(l)}"></i><span><b style="font-weight:500">${esc(p.name)}</b> · ${esc(pst(p,cur))}</span><em>${esc(psum(p,cur))}</em></button>`}).join('');
+    if(cur==last&&D.recs&&D.recs.length){
+      s+=`<h3>Ce trebuie făcut</h3>`+D.recs.map(r=>`<div class="fd" style="cursor:default"><i class="d ${r.p==1?'crit':r.p==2?'warn':'info'}"></i><span><b style="font-weight:500">${esc(r.a)}</b> <span class="chip ${r.p==1?'crit':r.p==2?'warn':''}">${r.p==1?'Urgent':r.p==2?'Recomandat':'Opțional'}</span></span>${r.d?`<em>${esc(r.d)}</em>`:''}${r.part?`<small>Piesă: ${esc(r.part)}</small>`:''}</div>`).join('');
+    }else if(cur!=last)s+=`<p class="note">Lista de lucrări și detaliile complete sunt pentru verificarea din ${esc(fdate(H[last].d))}.</p>`;
+    if(cur==last&&D.notes)s+=`<div class="rec"><small>Observațiile tehnicianului</small>${esc(D.notes)}</div>`;
+    if(H.length>1)s+=`<h3>Scorul în timp</h3><div class="fig"><svg id="ch" role="img" aria-label="Scorul de sănătate la fiecare verificare"></svg></div>`;
+    el.innerHTML=s;drawChart();return;
+  }
+  const p=P[id],l=pl(p,cur);
+  let s=`${sel?'<button class="back" id="back">← Înapoi la sumar</button>':''}<div class="rh"><h2>${esc(p.name)}</h2><span class="chip ${LV(l)}">${esc(l==null?'—':pst(p,cur))}</span></div><p class="part">${esc(psum(p,cur))}</p>`;
+  if(cur==last)s+=(p.cards||[]).map(cardHtml).join('');
+  else s+=`<p class="note">La verificarea din ${esc(fdate(H[cur].d))} s-a salvat doar starea pe scurt. Detaliile complete sunt la verificarea din ${esc(fdate(H[last].d))}.</p>`;
+  if(H.length>1){
+    const tl=H.map((x,i)=>{const q=pl(p,i);return `<span class="chip ${LV(q)}" style="margin:0 6px 6px 0">${esc(fdate(x.d))}: ${esc(q==null?'—':pst(p,i))}</span>`}).join('');
+    s+=`<h3>Starea la fiecare verificare</h3><div>${tl}</div>`;
+  }
+  el.innerHTML=s;
+}
+
+function drawChart(){
+  const s=$('#ch');if(!s)return;
+  const W=s.clientWidth,Hh=s.clientHeight,n=H.length;if(!W)return;
+  const px=i=>n==1?W/2:16+i*(W-32)/(n-1),py=v=>8+(1-v/100)*(Hh-32);
+  const col=l=>l==2?'#f0555c':l==1?'#f0c93e':'#7fd39b';
+  s.innerHTML=[80,50].map(v=>`<line x1="0" x2="${W}" y1="${py(v)}" y2="${py(v)}" stroke="#272b29"/>`).join('')+
+   `<polyline fill="none" stroke="#eef0ea" stroke-opacity=".55" stroke-width="1.5" points="${H.map((x,i)=>px(i)+','+py(x.score)).join(' ')}"/>`+
+   H.map((x,i)=>`${i==cur?`<circle cx="${px(i)}" cy="${py(x.score)}" r="9" fill="none" stroke="#d6f27a" stroke-width="1.5"/>`:''}<circle cx="${px(i)}" cy="${py(x.score)}" r="4" fill="${col(x.l)}"/>${(n<=6||i==0||i==n-1)?`<text x="${px(i)}" y="${Hh-6}" fill="#8e948d" font-size="12" text-anchor="middle">${esc(String(x.d).slice(0,7))}</text>`:''}`).join('');
+}
+
+function renderDock(){
+  let s=H.map((x,i)=>`<button class="sc ${i==cur?'on':''}" data-i="${i}" aria-pressed="${i==cur}"><span>${esc(fdate(x.d))}</span><b>${x.score} <small>/ 100</small></b></button>`).join('');
+  if(H.length==1)s+=`<p>Istoricul apare aici după următoarea verificare a acestui calculator.</p>`;
+  $('#dock').innerHTML=s;
+  const on=$('#dock .on');if(on&&matchMedia('(max-width:980px)').matches)on.scrollIntoView({block:'nearest',inline:'center'});
+}
+
+let coEls=[];
+function buildCallouts(){
+  const f=D.parts.filter(p=>(pl(p,cur)??-1)>=1&&G&&G.has(p.id));
+  $('#cos').innerHTML=f.map(p=>`<div class="co ${LV(pl(p,cur))}" data-c="${esc(p.id)}" style="opacity:0"><div class="in"><i class="dt"></i><i class="ln"></i><button data-r="${esc(p.id)}"><b>${esc(p.name)}</b><small>${esc(pst(p,cur))}</small></button></div></div>`).join('');
+  coEls=[...document.querySelectorAll('.co')];
+}
+
+let G=null;
+function renderAll(){renderLeft();renderRight();renderDock();buildCallouts()}
+function select(id){sel=(sel===id||!id)?null:id;hov=null;if(G){if(sel&&G.has(sel))G.fly(sel);else G.home()}renderLeft();renderRight()}
+function setScan(i){if(i<0||i>=H.length)return;cur=i;renderAll();if(G)G.sweep(false);else D.parts.forEach(p=>shown[p.id]=cur)}
+
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-r]');if(b){select(b.dataset.r);return}
+  const s=e.target.closest('[data-i]');if(s){setScan(+s.dataset.i);return}
+  if(e.target.closest('#back'))select(null);
+});
+$('#rgs').addEventListener('pointerover',e=>{const b=e.target.closest('[data-r]');if(b&&!sel&&hov!==b.dataset.r){hov=b.dataset.r;renderRight()}});
+$('#rgs').addEventListener('pointerleave',()=>{if(hov&&!sel){hov=null;renderRight()}});
+document.addEventListener('keydown',e=>{if(e.key=='ArrowRight')setScan(cur+1);else if(e.key=='ArrowLeft')setScan(cur-1);else if(e.key=='Escape')select(null)});
+$('#rescan').addEventListener('click',()=>{if(G)G.sweep(false)});
+const roR=new ResizeObserver(()=>drawChart());roR.observe($('#right'));
+
+/* ---------------- model 3D ---------------- */
+function init3D(){
+  const T=window.THREE,stage=$('#stage'),cv=$('#cv');
+  let ren;try{ren=new T.WebGLRenderer({canvas:cv,antialias:true,alpha:true})}catch(e){return null}
+  ren.setPixelRatio(Math.min(devicePixelRatio,2));
+  const LIME=0xd6f27a,AMB=0xf0c93e,RED=0xf0555c,MUT=0x8e948d,OKC=0x7fd39b;
+  const laptop=!!D.pc.laptop;
+  const scene=new T.Scene();scene.fog=new T.Fog(0x08090a,16,30);
+  const cam=new T.PerspectiveCamera(34,1,.1,80);
+  scene.add(new T.HemisphereLight(0xe6eee0,0x0a0b0b,.75));
+  const dl=new T.DirectionalLight(0xffffff,.85);dl.position.set(6,8,5);scene.add(dl);
+  const rim=new T.DirectionalLight(LIME,.35);rim.position.set(-4,3,-6);scene.add(rim);
+  const world=new T.Group();scene.add(world);
+
+  // componentele raportului, dupa tip
+  const byKey=k=>D.parts.find(p=>p.key==k);
+  const idOf=k=>{const p=byKey(k);return p?p.id:null};
+  const disks=D.parts.filter(p=>p.key=='disk');
+  const MAT={case:{body:new T.MeshStandardMaterial({color:0x1b1f1e,metalness:.55,roughness:.42}),line:new T.LineBasicMaterial({color:MUT,transparent:true,opacity:.4})}};
+  const mat=id=>{if(!id)return MAT.case;if(!MAT[id])MAT[id]={body:new T.MeshStandardMaterial({color:0x1b1f1e,metalness:.55,roughness:.42}),line:new T.LineBasicMaterial({color:MUT,transparent:true,opacity:.4})};return MAT[id]};
+  const pick=[],appear=[],spin=[];
+  function mk(geo,id){const M=mat(id),m=new T.Mesh(geo,M.body);m.add(new T.LineSegments(new T.EdgesGeometry(geo,25),M.line));if(id){m.userData.r=id;pick.push(m)}return m}
+  function put(o,x,y,z){o.position.set(x,y,z);o.userData.base=o.position.clone();world.add(o);appear.push(o);return o}
+  const B=(x,y,z)=>new T.BoxGeometry(x,y,z);
+  function fan(rad,id,speed){
+    const g=new T.Group();g.userData.r=id;
+    g.add(mk(new T.TorusGeometry(rad,rad*.08,5,24),id));
+    const hub=mk(new T.CylinderGeometry(rad*.26,rad*.26,rad*.16,14),id);hub.rotation.x=Math.PI/2;g.add(hub);
+    const rot=new T.Group(),bg=B(rad*.62,rad*.24,rad*.03);
+    for(let i=0;i<7;i++){const pv=new T.Group();pv.rotation.z=i/7*Math.PI*2;const b=mk(bg,id);b.position.x=rad*.55;b.rotation.x=.55;pv.add(b);rot.add(pv)}
+    g.add(rot);spin.push({o:rot,s:speed});return g;
+  }
+  const panel=(w,h,d,x,y,z,op,c)=>put(new T.Mesh(B(w,h,d),new T.MeshStandardMaterial({color:c||0x121514,metalness:.4,roughness:.6,transparent:op<1,opacity:op,depthWrite:op>=1})),x,y,z);
+  const cpu=idOf('cpu'),mb=idOf('placa'),ram=idOf('ram'),gpu=idOf('gpu'),net=idOf('retea'),bat=idOf('baterie'),mon=idOf('monitor');
+  const nvme=disks.filter(p=>p.disk&&p.disk.nvme),sata=disks.filter(p=>p.disk&&!p.disk.nvme&&!p.disk.usb);
+  let home0,cfg;
+
+  if(!laptop){
+    const frame=new T.LineSegments(new T.EdgesGeometry(B(2,4.4,4.2)),new T.LineBasicMaterial({color:MUT,transparent:true,opacity:.55}));put(frame,0,0,0);
+    panel(.04,4.4,4.2,-.98,0,0,1);panel(2,.04,4.2,0,-2.18,0,1);panel(2,.04,4.2,0,2.18,0,.55);
+    panel(2,4.4,.04,0,0,2.08,.14);panel(2,4.4,.04,0,0,-2.08,.6);panel(1.92,.04,4.1,0,-1.2,0,.28);
+    panel(.02,4.36,4.16,.99,0,0,.05,0x9fb0a8);
+    put(mk(B(.06,3.1,2.9),mb),-0.92,0.55,-0.45);
+    put(mk(B(.16,.18,.95),mb),-0.8,1.98,-0.55);put(mk(B(.16,.85,.18),mb),-0.8,1.4,-1.15);put(mk(B(.1,.45,.45),mb),-0.84,-0.55,0.35);
+    put(mk(B(.05,.05,1.6),mb),-0.87,-0.75,-0.6);
+    const cm=mk(new T.CylinderGeometry(.11,.11,.04,20),mb);cm.rotation.z=Math.PI/2;put(cm,-0.87,-0.62,-0.9);
+    put(mk(B(.3,.95,.3),net||mb),-0.72,1.5,-1.7);
+    put(mk(B(.05,.55,.55),cpu),-0.87,1.45,-0.55);put(mk(B(.14,.36,.36),cpu),-0.78,1.45,-0.55);
+    const fin=B(.82,.022,.46);for(let i=0;i<13;i++)put(mk(fin,cpu),-0.36,1.02+i*.072,-0.55);
+    put(fan(.4,cpu,7),-0.36,1.45,-0.27);
+    put(mk(B(.42,1.25,.035),ram),-0.66,1.35,0.2);put(mk(B(.42,1.25,.035),ram),-0.66,1.35,0.44);
+    put(mk(B(.07,1.3,.05),ram),-0.86,1.35,0.32);put(mk(B(.07,1.3,.05),ram),-0.86,1.35,0.56);
+    put(mk(B(.5,.36,2.5),gpu),-0.55,0.05,-0.55);put(mk(B(.08,.62,.06),gpu),-0.6,0.1,-1.84);
+    for(const z of [-1.1,0]){const f=fan(.3,gpu,5);f.rotation.x=Math.PI/2;put(f,-0.55,-0.15,z)}
+    const ms=[[-0.86,0.62,-0.75],[-0.86,-0.45,-0.75]];
+    nvme.slice(0,2).forEach((p,i)=>put(mk(B(.05,.22,.8),p.id),...ms[i]));
+    put(mk(B(1.5,.78,1.4)),-0.15,-1.76,-1.25);{const f=fan(.42,null,2.5);f.rotation.x=Math.PI/2;put(f,-0.15,-1.35,-1.25)}
+    const cy=[-1.96,-1.64,-1.36];
+    sata.slice(0,3).forEach((p,i)=>{const hdd=p.disk.type=='HDD';put(mk(hdd?B(1.0,.26,1.2):B(.7,.07,1.0),p.id),0.05,cy[i]+(hdd?0:-.08),1.3)});
+    put(mk(B(1.1,.03,1.25)),0.05,-1.8,1.3);
+    put(fan(.5,null,6),0,1.25,1.97);put(fan(.5,null,6),0,0.05,1.97);put(fan(.45,null,6),0.15,1.45,-1.98);
+    home0={yaw:1.05,pitch:.22,tgt:[0,.05,0],h:6.6,w:5};
+    cfg={axis:'y',from:2.7,to:-2.5};
+  }else{
+    // laptop: baza transparenta cu piesele vizibile si capacul cu ecranul
+    const bw=3.6,bd=2.5,by=-0.6;
+    put(new T.LineSegments(new T.EdgesGeometry(B(bw,.22,bd)),new T.LineBasicMaterial({color:MUT,transparent:true,opacity:.6})),0,by,0);
+    panel(bw,.02,bd,0,by-.1,0,1);
+    panel(bw,.02,bd,0,by+.1,0,.16,0x9fb0a8);
+    const kl=[];const kx0=-1.5,kz0=-1.0,kw=3/14,kd=1.1/5;
+    for(let r=0;r<5;r++)for(let c=0;c<14;c++){const x=kx0+c*kw+.02,z=kz0+r*kd+.02,w=kw-.04,d=kd-.04;kl.push(x,0,z,x+w,0,z,x+w,0,z,x+w,0,z+d,x+w,0,z+d,x,0,z+d,x,0,z+d,x,0,z)}
+    const tp=[-.6,.45,.6,.45,.6,.45,.6,1.05,.6,1.05,-.6,1.05,-.6,1.05,-.6,.45];for(let i=0;i<tp.length;i+=4)kl.push(tp[i],0,tp[i+1],tp[i+2],0,tp[i+3]);
+    const kg=new T.BufferGeometry();kg.setAttribute('position',new T.Float32BufferAttribute(kl,3));
+    put(new T.LineSegments(kg,new T.LineBasicMaterial({color:MUT,transparent:true,opacity:.3})),0,by+.115,0);
+    put(mk(B(3.0,.03,1.1),mb),0,by-.06,-0.6);
+    put(mk(B(.35,.05,.35),cpu),-0.3,by-.02,-0.6);put(mk(B(1.4,.03,.12),cpu),0.45,by,-0.65);
+    {const f=fan(.3,cpu,7);f.rotation.x=Math.PI/2;put(f,1.25,by,-0.75)}
+    put(mk(B(.4,.05,.4),gpu),0.35,by-.02,-0.5);
+    put(mk(B(.9,.03,.35),ram),-1.1,by-.03,-0.75);put(mk(B(.9,.03,.35),ram),-1.1,by+.01,-0.75);
+    put(mk(B(.3,.02,.3),net||mb),-1.45,by-.03,-0.15);
+    const ms=[[-0.6,by-.03,-0.15],[0.4,by-.03,-0.15]];
+    nvme.slice(0,2).forEach((p,i)=>put(mk(B(.8,.02,.22),p.id),...ms[i]));
+    if(sata[0])put(mk(B(.95,.07,.7),sata[0].id),1.15,by-.04,0.55);
+    put(mk(B(2.2,.08,.6),bat),-0.5,by-.04,0.75);
+    // capac
+    const lid=new T.Group();
+    lid.add(mk(B(bw,2.4,.07),mon));
+    const sc=document.createElement('canvas');sc.width=512;sc.height=340;const x=sc.getContext('2d');
+    x.fillStyle='#0b0d0d';x.fillRect(0,0,512,340);
+    const h=H[last],col=h.score<50?'#f0555c':h.score<80?'#f0c93e':'#d6f27a';
+    x.lineWidth=14;x.strokeStyle='#272b29';x.beginPath();x.arc(256,150,82,0,Math.PI*2);x.stroke();
+    x.strokeStyle=col;x.lineCap='round';x.beginPath();x.arc(256,150,82,-Math.PI/2,-Math.PI/2+Math.PI*2*h.score/100);x.stroke();
+    x.fillStyle='#eef0ea';x.font='500 64px Outfit, Segoe UI, sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText(String(h.score),256,152);
+    x.fillStyle='#8e948d';x.font='26px Outfit, Segoe UI, sans-serif';x.fillText('Sănătate PC',256,290);
+    const scr=new T.Mesh(new T.PlaneGeometry(3.3,2.15),new T.MeshBasicMaterial({map:new T.CanvasTexture(sc)}));scr.position.z=.04;lid.add(scr);
+    const pv=new T.Group();lid.position.y=1.2;pv.add(lid);pv.rotation.x=-0.3;pv.userData.r=mon;
+    put(pv,0,by+.11,-1.22);
+    home0={yaw:.3,pitch:.42,tgt:[0,.25,0],h:4.6,w:5.2};
+    cfg={axis:'z',from:-2.0,to:1.7};
+  }
+
+  // podea
+  const gc=document.createElement('canvas');gc.width=gc.height=256;const gx=gc.getContext('2d'),gr=gx.createRadialGradient(128,128,0,128,128,128);
+  gr.addColorStop(0,'rgba(214,242,122,.22)');gr.addColorStop(.5,'rgba(214,242,122,.05)');gr.addColorStop(1,'rgba(214,242,122,0)');gx.fillStyle=gr;gx.fillRect(0,0,256,256);
+  const fy=laptop?-0.72:-2.22;
+  const gp=new T.Mesh(new T.PlaneGeometry(10,10),new T.MeshBasicMaterial({map:new T.CanvasTexture(gc),transparent:true,depthWrite:false}));gp.rotation.x=-Math.PI/2;gp.position.y=fy;scene.add(gp);
+  for(const rr of [2.8,3.6]){const pts=[];for(let i=0;i<96;i++){const a=i/96*Math.PI*2;pts.push(new T.Vector3(Math.cos(a)*rr,fy+.01,Math.sin(a)*rr))}scene.add(new T.LineLoop(new T.BufferGeometry().setFromPoints(pts),new T.LineBasicMaterial({color:MUT,transparent:true,opacity:.18})))}
+
+  // banda de scanare
+  const band=new T.Group();
+  const bpm=new T.MeshBasicMaterial({color:LIME,transparent:true,opacity:.14,side:T.DoubleSide,depthWrite:false,blending:T.AdditiveBlending});
+  const blm=new T.LineBasicMaterial({color:LIME,transparent:true,opacity:1});
+  const bw2=laptop?2.1:1.45,bh2=laptop?1.9:2.55;
+  const bp=new T.Mesh(new T.PlaneGeometry(bw2*2,bh2*2),bpm);
+  const rect=[[-bw2,-bh2],[bw2,-bh2],[bw2,bh2],[-bw2,bh2]].map(([a,b])=>new T.Vector3(a,b,0));
+  band.add(bp,new T.LineLoop(new T.BufferGeometry().setFromPoints(rect),blm));
+  if(cfg.axis=='y')band.rotation.x=-Math.PI/2;else band.position.y=0.9;
+  band.visible=false;scene.add(band);
+
+  world.updateMatrixWorld(true);
+  const regKey={},regBox={};
+  const keyOf=b=>cfg.axis=='y'?-b.max.y:b.min.z;
+  for(const o of appear){const b=new T.Box3().setFromObject(o);o.userData.k=keyOf(b);o.userData.on=reduce;o.visible=reduce}
+  for(const m of pick){const id=m.userData.r,b=new T.Box3().setFromObject(m);regBox[id]=regBox[id]?regBox[id].union(b):b.clone();regKey[id]=Math.min(regKey[id]??99,keyOf(b))}
+  const center={};for(const id in regBox)center[id]=regBox[id].getCenter(new T.Vector3());
+  if(reduce)D.parts.forEach(p=>shown[p.id]=cur);
+
+  let sw=null;
+  function sweep(build){if(reduce){D.parts.forEach(p=>shown[p.id]=cur);return}sw={t0:performance.now(),dur:build?2600:1300};band.visible=true}
+
+  let yaw=home0.yaw,pitch=home0.pitch,dist=12,baseDist=12;const tgt=new T.Vector3(...home0.tgt);
+  const goal={yaw,pitch,dist,tgt:tgt.clone()};let homeMode=true;
+  function home(){homeMode=true;goal.tgt.set(...home0.tgt);goal.dist=baseDist;goal.pitch=home0.pitch;goal.yaw=home0.yaw}
+  function fly(id){const c=center[id];if(!c)return;homeMode=false;goal.tgt.copy(c);
+    if(laptop){goal.dist=3.4;goal.yaw=.3;goal.pitch=id==mon?.2:.95}
+    else{goal.dist=4.4;goal.yaw=c.z>0.9?.6:1.3;goal.pitch=.18}}
+  function resize(){const w=stage.clientWidth,h=stage.clientHeight;if(!w||!h)return;ren.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix();baseDist=Math.max(home0.h/.61,home0.w/(.61*cam.aspect));if(homeMode)goal.dist=baseDist}
+  const roS=new ResizeObserver(resize);roS.observe(stage);resize();dist=baseDist;
+
+  const ray=new T.Raycaster(),ndc=new T.Vector2();
+  const vis=o=>{while(o){if(!o.visible)return false;o=o.parent}return true};
+  function hit(e){const b=cv.getBoundingClientRect();ndc.set((e.clientX-b.left)/b.width*2-1,-(e.clientY-b.top)/b.height*2+1);ray.setFromCamera(ndc,cam);const h=ray.intersectObjects(pick,false).find(x=>vis(x.object));return h?h.object.userData.r:null}
+  let down=null,drag=false;
+  cv.addEventListener('pointerdown',e=>{down={x:e.clientX,y:e.clientY,m:0};cv.setPointerCapture(e.pointerId)});
+  cv.addEventListener('pointermove',e=>{
+    if(down){const dx=e.clientX-down.x,dy=e.clientY-down.y;down.m+=Math.abs(dx)+Math.abs(dy);down.x=e.clientX;down.y=e.clientY;if(down.m>4){drag=true;goal.yaw-=dx*.007;goal.pitch=Math.max(-.15,Math.min(1.2,goal.pitch+dy*.005))}return}
+    if(e.pointerType=='mouse'){const r=hit(e);if(r!==hov){hov=r;cv.style.cursor=r?'pointer':'grab';if(!sel)renderRight()}}
+  });
+  cv.addEventListener('pointerup',e=>{if(down&&down.m<=4){const r=hit(e);if(r)select(r);else if(sel)select(null)}down=null;drag=false});
+  cv.addEventListener('pointercancel',()=>{down=null;drag=false});
+  cv.addEventListener('pointerleave',()=>{if(hov&&!sel){hov=null;renderRight()}});
+  cv.addEventListener('wheel',e=>{e.preventDefault();homeMode=false;goal.dist=Math.max(2.5,Math.min(22,goal.dist*(1+e.deltaY*.001)))},{passive:false});
+
+  const v3=new T.Vector3();let last_=performance.now();
+  function loop(now){
+    requestAnimationFrame(loop);
+    const dt=Math.min(.05,(now-last_)/1000);last_=now;const k=1-Math.exp(-dt*4);
+    yaw+=(goal.yaw-yaw)*k;pitch+=(goal.pitch-pitch)*k;dist+=(goal.dist-dist)*k;tgt.lerp(goal.tgt,k);
+    const y=yaw+((!drag&&!sel&&!reduce)?Math.sin(now/4200)*.14:0);
+    cam.position.set(tgt.x+dist*Math.cos(pitch)*Math.sin(y),tgt.y+dist*Math.sin(pitch),tgt.z+dist*Math.cos(pitch)*Math.cos(y));cam.lookAt(tgt);
+    if(sw){
+      const p=Math.min(1,(now-sw.t0)/sw.dur),e=p*p*(3-2*p),c=cfg.from+(cfg.to-cfg.from)*e,s=cfg.axis=='y'?-c:c;
+      if(cfg.axis=='y')band.position.y=c;else band.position.z=c;
+      bpm.opacity=.14*Math.sin(Math.PI*p);blm.opacity=Math.sin(Math.PI*p);
+      for(const o of appear)if(!o.userData.on&&s>o.userData.k){o.userData.on=true;o.userData.t=now;o.visible=true}
+      for(const pp of D.parts)if(s>(regKey[pp.id]??-99))shown[pp.id]=cur;
+      if(p>=1){sw=null;band.visible=false;D.parts.forEach(pp=>shown[pp.id]=cur);for(const o of appear)if(!o.userData.on){o.userData.on=true;o.visible=true}}
+    }
+    for(const o of appear)if(o.userData.t){const q=Math.min(1,(now-o.userData.t)/480);o.position.y=o.userData.base.y+(laptop?.25:.5)*(1-q)**3;if(q>=1)o.userData.t=0}
+    const pulse=.5+.5*Math.sin(now/280);
+    for(const pp of D.parts){const M=MAT[pp.id];if(!M)continue;
+      const l=shown[pp.id]==null?-1:(pl(pp,shown[pp.id])??-1),on=pp.id===sel||pp.id===hov,dim=sel&&!on;
+      M.line.color.setHex(on?LIME:l==2?RED:l==1?AMB:l==0?OKC:MUT);
+      M.line.opacity=on?1:dim?.12:l>=1?.9:l==0?.45:.35;
+      if(on)M.body.emissive.setHex(LIME).multiplyScalar(.14);
+      else if(l==2&&!dim)M.body.emissive.setHex(RED).multiplyScalar(.1+.12*pulse);
+      else if(l==1&&!dim)M.body.emissive.setHex(AMB).multiplyScalar(.06);
+      else M.body.emissive.setHex(0);
+    }
+    if(!reduce)for(const s of spin)s.o.rotation.z+=dt*s.s;
+    ren.render(scene,cam);
+    const W=stage.clientWidth,Hh=stage.clientHeight;
+    for(const el of coEls){const id=el.dataset.c,c=center[id];if(!c)continue;v3.copy(c).project(cam);const x=(v3.x+1)/2*W,yy=(1-v3.y)/2*Hh,ok=v3.z<1&&shown[id]===cur&&!(sel&&sel!==id);
+      el.style.opacity=ok?1:0;el.style.visibility=ok?'visible':'hidden';el.classList.toggle('lf',x>W*.56);el.style.transform=`translate(${x.toFixed(1)}px,${yy.toFixed(1)}px)`}
+  }
+  requestAnimationFrame(loop);
+  return {sweep,home,fly,has:id=>!!center[id]};
+}
+
+renderTop();
+if(window.THREE)G=init3D();
+renderAll();
+if(G)G.sweep(true);
+else{D.parts.forEach(p=>shown[p.id]=cur);$('#hint').remove();$('#stage').insertAdjacentHTML('beforeend','<div class="nogl">Modelul 3D nu s-a putut afișa pe acest dispozitiv. Toate datele sunt în panouri.</div>')}
+}
+</script>
+</body>
+</html>

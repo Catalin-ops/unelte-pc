@@ -35,6 +35,27 @@ foreach ($sec in $secs) {
     }
 }
 
+# raport 3D: se construieste din datele reale ale masinii de test, cu three.js inclus
+$secT = $asm.GetType('InfoPcDisk.Section')
+$ls = [Activator]::CreateInstance([Collections.Generic.List`1].MakeGenericType($secT))
+$sum = [Activator]::CreateInstance($secT, @('sumar', 'Sumar', ''))
+$hc = $sum.AddCard('Calculatorul este in stare buna', 'test CI'); $hc.Badge = '92'; $hc.SetLevel(0, $null)
+$ls.Add($sum)
+foreach ($sec in $secs) { $ls.Add($sec) }
+$dl = [Activator]::CreateInstance([Collections.Generic.List`1].MakeGenericType($asm.GetType('InfoPcDisk.DiskReport')))
+$rl = [Activator]::CreateInstance([Collections.Generic.List`1].MakeGenericType($asm.GetType('InfoPcDisk.Rec')))
+$stg = [Activator]::CreateInstance($asm.GetType('InfoPcDisk.Settings'))
+$stg.Company = 'Info PC Electric'; $stg.Technician = 'Test CI'; $stg.Dir = Join-Path $env:TEMP 'spc_test_istoric'
+$r3 = $asm.GetType('InfoPcDisk.Raport3D')
+$html = $r3.GetMethod('Build').Invoke($null, [object[]]@($ls, $dl, $rl, $stg, 'Client test', 'Observatie de test', $true))
+$html = $r3.GetMethod('Build').Invoke($null, [object[]]@($ls, $dl, $rl, $stg, 'Client test', 'Observatie de test', $true))
+Write-Host "Raport 3D: $($html.Length) caractere, model 3D inclus: $($r3.GetProperty('HasModel').GetValue($null))"
+if ($html -notmatch '"parts":\[\{' -or $html -match '/\*DATE_RAPORT\*/' -or $html -match '/\*THREE_JS\*/') { throw 'Raportul 3D nu a primit datele' }
+if (-not $r3.GetProperty('HasModel').GetValue($null) -or $html.Length -lt 500000) { throw 'Raportul 3D nu contine three.js' }
+if (([regex]::Matches($html, '"hist":\[\{"d"')).Count -ne 1 -or ([regex]::Matches($html, '\{"d":"')).Count -ne 1) { throw 'Istoricul raportului 3D trebuie sa aiba o singura intrare pe zi' }
+New-Item -ItemType Directory -Force shots | Out-Null
+[IO.File]::WriteAllText((Join-Path (Resolve-Path shots) 'Raport3D_test.html'), $html, (New-Object Text.UTF8Encoding($false)))
+
 # licenta: cheie valida, expirata, modificata
 $L = $asm.GetType('InfoPcDisk.Licensing')
 $keys = @{}

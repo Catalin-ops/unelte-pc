@@ -221,6 +221,12 @@
             <TextBlock Text="Raport PDF"/>
           </StackPanel>
         </Button>
+        <Button x:Name="Save3DBtn" Style="{StaticResource Ghost}" ToolTip="Raport 3D interactiv pentru client, de trimis pe WhatsApp sau e-mail (Pro)">
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Text="&#xE774;" FontFamily="Segoe MDL2 Assets" Margin="0,2,8,0"/>
+            <TextBlock Text="Raport 3D"/>
+          </StackPanel>
+        </Button>
         <Button x:Name="SettingsBtn" Style="{StaticResource Ghost}" ToolTip="Datele firmei și logo-ul pentru raport">
           <TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets" FontSize="15"/>
         </Button>
