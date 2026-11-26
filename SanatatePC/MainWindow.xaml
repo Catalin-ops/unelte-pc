@@ -209,16 +209,19 @@
             <TextBlock Text="Proiecte"/>
           </StackPanel>
         </Button>
-        <Button x:Name="RefreshBtn" Style="{StaticResource Ghost}" ToolTip="Citește din nou toate componentele">
-          <StackPanel Orientation="Horizontal">
-            <TextBlock Text="&#xE72C;" FontFamily="Segoe MDL2 Assets" Margin="0,2,8,0"/>
-            <TextBlock Text="Reîmprospătează"/>
-          </StackPanel>
+        <Button x:Name="RefreshBtn" Style="{StaticResource Ghost}" ToolTip="Reîmprospătează: citește din nou toate componentele">
+          <TextBlock Text="&#xE72C;" FontFamily="Segoe MDL2 Assets" FontSize="15"/>
         </Button>
         <Button x:Name="SaveBtn" Style="{StaticResource Ghost}" ToolTip="Raport PDF pentru client (Pro)">
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="&#xEA90;" FontFamily="Segoe MDL2 Assets" Margin="0,2,8,0"/>
             <TextBlock Text="Raport PDF"/>
+          </StackPanel>
+        </Button>
+        <Button x:Name="Save3DBtn" Style="{StaticResource Ghost}" ToolTip="Raport 3D interactiv pentru client, de trimis pe WhatsApp sau e-mail (Pro)">
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Text="&#xE774;" FontFamily="Segoe MDL2 Assets" Margin="0,2,8,0"/>
+            <TextBlock Text="Raport 3D"/>
           </StackPanel>
         </Button>
         <Button x:Name="SettingsBtn" Style="{StaticResource Ghost}" ToolTip="Datele firmei și logo-ul pentru raport">

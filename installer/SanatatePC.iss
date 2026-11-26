@@ -2,7 +2,7 @@
 ; Instalare silentioasa (Microsoft Store): SanatatePC_Setup.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
 
 #ifndef AppVersion
-  #define AppVersion "1.4.2"
+  #define AppVersion "1.5.0"
 #endif
 
 [Setup]

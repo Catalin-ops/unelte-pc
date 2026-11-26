@@ -22,9 +22,9 @@ using System.Windows.Media.Imaging;
 [assembly: AssemblyCompany("Info PC Electric S.R.L.")]
 [assembly: AssemblyProduct("Sănătate PC")]
 [assembly: AssemblyCopyright("© 2026 Info PC Electric")]
-[assembly: AssemblyVersion("1.4.2.0")]
-[assembly: AssemblyInformationalVersion("1.4.2")]
-[assembly: AssemblyFileVersion("1.4.2.0")]
+[assembly: AssemblyVersion("1.5.0.0")]
+[assembly: AssemblyInformationalVersion("1.5.0")]
+[assembly: AssemblyFileVersion("1.5.0.0")]
 
 namespace InfoPcDisk
 {
@@ -160,6 +160,7 @@ namespace InfoPcDisk
             proBtn.Click += delegate { ShowActivation(); };
             refreshBtn.Click += delegate { Load(); };
             saveBtn.Click += delegate { SaveReport(); };
+            F<Button>("Save3DBtn").Click += delegate { SaveReport3D(); };
             settingsBtn.Click += delegate { ShowSettings(); };
             F<Button>("ProjectsBtn").Click += delegate { ShowProjects(); };
             F<Button>("AuditBtn").Click += delegate { ShowAudit(); };
@@ -453,6 +454,7 @@ namespace InfoPcDisk
             live.Stop();
             refreshBtn.IsEnabled = false;
             saveBtn.IsEnabled = false;
+            F<Button>("Save3DBtn").IsEnabled = false;
             HideAllPages();
             loadingPanel.Visibility = Visibility.Visible;
             string prevKey = nav.SelectedItem is Section ? ((Section)nav.SelectedItem).Key : null;
@@ -546,6 +548,7 @@ namespace InfoPcDisk
                     loading = false;
                     refreshBtn.IsEnabled = true;
                     saveBtn.IsEnabled = true;
+                    F<Button>("Save3DBtn").IsEnabled = true;
                     Section sel = sections[0];
                     if (prevKey == null) prevKey = StartPage();
                     if (prevKey != null) foreach (Section s in sections) if (s.Key == prevKey) sel = s;
@@ -871,6 +874,7 @@ namespace InfoPcDisk
                 System.Windows.Documents.FlowDocument doc = Report.Build(sections, disks, lic, settings, client.Text.Trim(), notes.Text.Trim());
                 string foot = (settings.Company.Length > 0 ? settings.Company + " · " : "") + "Sănătate PC Pro";
                 Report.SavePdf(doc, sf.FileName, foot);
+                Raport3D.SaveSnapshot(sections, disks, settings);
             }
             catch (Exception ex)
             {

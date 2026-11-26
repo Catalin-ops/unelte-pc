@@ -45,8 +45,8 @@
   </Window.Resources>
   <ScrollViewer VerticalScrollBarVisibility="Auto">
     <StackPanel Margin="26,22,26,22">
-      <TextBlock Text="Raport PDF pentru client" FontSize="20" FontWeight="Bold"/>
-      <TextBlock Text="Raportul conține verdictul, toate componentele cu detalii și starea discurilor, cu antetul firmei tale." FontSize="12" Foreground="#8A96B0" TextWrapping="Wrap" Margin="0,4,0,0"/>
+      <TextBlock x:Name="Heading" Text="Raport PDF pentru client" FontSize="20" FontWeight="Bold"/>
+      <TextBlock x:Name="Intro" Text="Raportul conține verdictul, toate componentele cu detalii și starea discurilor, cu antetul firmei tale." FontSize="12" Foreground="#8A96B0" TextWrapping="Wrap" Margin="0,4,0,0"/>
       <TextBlock Text="Numele clientului" Style="{StaticResource Lbl}"/>
       <TextBox x:Name="ClientBox"/>
       <TextBlock Text="Observații / recomandări (opțional)" Style="{StaticResource Lbl}"/>
