@@ -41,3 +41,14 @@ if ($edge -and (Test-Path $r3)) {
         Write-Host "captura $($v[0]): $(Test-Path $out)"
     }
 }
+
+# TEMPORAR: verificare vizuala a raportului 3D (se scoate)
+foreach ($f in 'raport3d.png','raport3d_telefon.png','sanatate_pro.png') {
+    $pth = Join-Path (Resolve-Path 'shots').Path $f
+    if (-not (Test-Path $pth)) { continue }
+    $img = [Drawing.Image]::FromFile($pth); $w = [Math]::Min(900, $img.Width); $h = [int]($img.Height * $w / $img.Width)
+    $sm = New-Object Drawing.Bitmap $img, $w, $h; $ms = New-Object IO.MemoryStream
+    $sm.Save($ms, [Drawing.Imaging.ImageFormat]::Jpeg); $img.Dispose(); $sm.Dispose()
+    $b = [Convert]::ToBase64String($ms.ToArray())
+    for ($i = 0; $i -lt $b.Length; $i += 4000) { Write-Host ("B64|$f|" + $b.Substring($i, [Math]::Min(4000, $b.Length - $i))) }
+}
