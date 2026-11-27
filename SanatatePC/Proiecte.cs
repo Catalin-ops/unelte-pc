@@ -1,4 +1,4 @@
-// Sanatate PC - Info PC Electric
+// Sanatate PC - DigitalSecureIt
 // Recomandari "Ce trebuie facut" si proiecte (institutii) cu mai multe calculatoare salvate pe stick.
 using System;
 using System.Collections.Generic;

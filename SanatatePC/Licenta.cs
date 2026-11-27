@@ -1,4 +1,4 @@
-// Sanatate PC - Info PC Electric
+// Sanatate PC - DigitalSecureIt
 // Licenta offline: cheie semnata ECDSA P-256 cu numele clientului si data expirarii.
 // Functioneaza pe orice PC, fara internet; fisierul licenta.spc poate sta langa .exe (stick) sau in AppData.
 using System;

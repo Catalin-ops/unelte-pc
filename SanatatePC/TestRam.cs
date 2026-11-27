@@ -1,4 +1,4 @@
-// Sanatate PC - Info PC Electric
+// Sanatate PC - DigitalSecureIt
 // Test de memorie RAM direct in Windows (fara repornire): scrie tipare in memoria libera si le verifica.
 // Limita: memoria folosita de Windows si de programe nu poate fi testata din aplicatie.
 using System;

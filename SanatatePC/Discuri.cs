@@ -1,4 +1,4 @@
-// Sanatate Disc - Info PC Electric
+// Sanatate Disc - DigitalSecureIt
 // Citeste datele SMART (SATA/ATA) si jurnalul de sanatate NVMe. Doar interogari, nu scrie nimic pe disc.
 // Scris in C# 5 (compilat la pornire de Windows PowerShell).
 using System;

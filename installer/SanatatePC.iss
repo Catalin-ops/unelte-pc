@@ -1,8 +1,8 @@
-﻿; Installer Sanatate PC - Info PC Electric (Inno Setup 6)
+﻿; Installer Sanatate PC - DigitalSecureIt (Inno Setup 6)
 ; Instalare silentioasa (Microsoft Store): SanatatePC_Setup.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
 
 #ifndef AppVersion
-  #define AppVersion "1.5.0"
+  #define AppVersion "1.6.0"
 #endif
 
 [Setup]
@@ -10,14 +10,12 @@ AppId={{6F2B8E41-3C7A-4D19-9B5E-2A7C41D0E8F3}
 AppName=Sănătate PC
 AppVersion={#AppVersion}
 AppVerName=Sănătate PC {#AppVersion}
-AppPublisher=Info PC Electric S.R.L.
-AppPublisherURL=https://www.infopc.ro
-AppSupportURL=https://www.infopc.ro
-AppCopyright=© 2026 Info PC Electric S.R.L.
+AppPublisher=DigitalSecureIt
+AppCopyright=© 2026 DigitalSecureIt
 VersionInfoVersion={#AppVersion}.0
-VersionInfoCompany=Info PC Electric S.R.L.
+VersionInfoCompany=DigitalSecureIt
 VersionInfoDescription=Sănătate PC - instalare
-DefaultDirName={autopf}\Info PC Electric\Sanatate PC
+DefaultDirName={autopf}\DigitalSecureIt\Sanatate PC
 DefaultGroupName=Sănătate PC
 DisableProgramGroupPage=yes
 PrivilegesRequired=admin

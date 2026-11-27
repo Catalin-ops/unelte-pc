@@ -1,4 +1,4 @@
-// Sanatate PC - Info PC Electric
+// Sanatate PC - DigitalSecureIt
 // Setarile firmei (pentru raport) si generarea raportului PDF cu logo.
 using System;
 using System.Collections.Generic;
@@ -15,6 +15,7 @@ namespace InfoPcDisk
     public class Settings
     {
         public string Company = "", Phone = "", Email = "", Website = "", Address = "", Technician = "";
+        public string MonitorServer = "";
         public string LogoFile = "";   // nume fisier in acelasi folder cu setarile
         public string Dir = "";
         public AuditOptions Audit = new AuditOptions();
@@ -42,6 +43,7 @@ namespace InfoPcDisk
                     case "Adresa": s.Address = v; break;
                     case "Tehnician": s.Technician = v; break;
                     case "Logo": s.LogoFile = v; break;
+                    case "ServerMonitorizare": s.MonitorServer = v; break;
                     case "AuditMinute": { int m; if (int.TryParse(v, out m) && m >= 1 && m <= 240) s.Audit.Minutes = m; break; }
                     case "AuditStres": s.Audit.Stress = v != "0"; break;
                     case "AuditRam": s.Audit.Ram = v != "0"; break;
@@ -63,6 +65,7 @@ namespace InfoPcDisk
             sb.AppendLine("Adresa=" + Address);
             sb.AppendLine("Tehnician=" + Technician);
             sb.AppendLine("Logo=" + LogoFile);
+            sb.AppendLine("ServerMonitorizare=" + MonitorServer);
             sb.AppendLine("AuditMinute=" + Audit.Minutes);
             sb.AppendLine("AuditStres=" + (Audit.Stress ? 1 : 0));
             sb.AppendLine("AuditRam=" + (Audit.Ram ? 1 : 0));
@@ -622,7 +625,7 @@ namespace InfoPcDisk
                 }
                 int info = total;
                 offsets[info] = fs.Position;
-                w(info + " 0 obj\n<< /Title (Raport tehnic - starea calculatorului) /Producer (Sanatate PC - Info PC Electric) /CreationDate (D:" + DateTime.Now.ToString("yyyyMMddHHmmss") + ") >>\nendobj\n");
+                w(info + " 0 obj\n<< /Title (Raport tehnic - starea calculatorului) /Producer (Sanatate PC - DigitalSecureIt) /CreationDate (D:" + DateTime.Now.ToString("yyyyMMddHHmmss") + ") >>\nendobj\n");
                 long xref = fs.Position;
                 w("xref\n0 " + (total + 1) + "\n0000000000 65535 f \n");
                 for (int i = 1; i <= total; i++) w(offsets[i].ToString("0000000000") + " 00000 n \n");

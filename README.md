@@ -1,4 +1,4 @@
-# Unelte PC — Info PC Electric
+# Unelte PC — DigitalSecureIt
 
 Două aplicații Windows (.exe), fără instalare:
 

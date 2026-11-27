@@ -1,4 +1,4 @@
-// Sanatate PC - Info PC Electric
+// Sanatate PC - DigitalSecureIt
 // Audit complet: teste reale care ruleaza pe durata aleasa de tehnician (stres procesor + temperaturi,
 // test RAM, citirea suprafetei discurilor, urmarirea erorilor de sistem). Durata se imparte intre testele alese;
 // daca un test termina mai repede, timpul ramas trece la urmatorul. In raport apare durata reala.

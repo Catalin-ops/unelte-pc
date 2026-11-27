@@ -1,4 +1,4 @@
-// Sanatate PC - Info PC Electric
+// Sanatate PC - DigitalSecureIt
 // Fereastra "Audit complet": tehnicianul alege durata si testele, apoi urmareste cum ruleaza fiecare.
 using System;
 using System.Windows;

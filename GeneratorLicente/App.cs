@@ -1,4 +1,4 @@
-// Generator Licente - Info PC Electric. Emite chei Pro pentru Sanatate PC (cheia privata e citita din fisier, nu e in cod).
+// Generator Licente - DigitalSecureIt. Emite chei Pro pentru Sanatate PC (cheia privata e citita din fisier, nu e in cod).
 using System;
 using System.IO;
 using System.Reflection;
@@ -10,7 +10,7 @@ using System.Windows.Media;
 using InfoPcDisk;
 
 [assembly: AssemblyTitle("Generator Licențe")]
-[assembly: AssemblyCompany("Info PC Electric S.R.L.")]
+[assembly: AssemblyCompany("DigitalSecureIt")]
 [assembly: AssemblyProduct("Generator Licențe Sănătate PC")]
 [assembly: AssemblyVersion("1.0.0.0")]
 

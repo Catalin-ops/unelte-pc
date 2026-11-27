@@ -1,4 +1,4 @@
-// Recuperare Fisiere - Info PC Electric
+// Recuperare Fisiere - DigitalSecureIt
 // Interfata WPF. Motorul (Motor.cs) deschide discul sursa DOAR pentru citire.
 using System;
 using System.Collections.Generic;
@@ -18,9 +18,9 @@ using System.Windows.Threading;
 
 [assembly: AssemblyTitle("Recuperare Fișiere")]
 [assembly: AssemblyDescription("Recuperare fișiere șterse sau pierdute")]
-[assembly: AssemblyCompany("Info PC Electric S.R.L.")]
+[assembly: AssemblyCompany("DigitalSecureIt")]
 [assembly: AssemblyProduct("Recuperare Fișiere")]
-[assembly: AssemblyCopyright("© 2026 Info PC Electric")]
+[assembly: AssemblyCopyright("© 2026 DigitalSecureIt")]
 [assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]
 
