@@ -1,4 +1,4 @@
-// Sanatate PC - Info PC Electric
+// Sanatate PC - DigitalSecureIt
 // Fereastra "Test memorie RAM": test in aplicatie (fara repornire) sau test Windows la repornire.
 using System;
 using System.Globalization;

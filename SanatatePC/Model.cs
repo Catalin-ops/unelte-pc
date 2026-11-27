@@ -1,4 +1,4 @@
-// Sanatate PC - Info PC Electric
+// Sanatate PC - DigitalSecureIt
 // Modelul de date afisat in interfata: sectiuni (componente) -> carduri -> proprietati + constatari.
 using System;
 using System.Collections.Generic;

@@ -1,4 +1,4 @@
-// Sanatate PC - Info PC Electric
+// Sanatate PC - DigitalSecureIt
 // Butonul "Raport 3D" (Pro): creeaza pagina 3D pentru client si o trimite pe WhatsApp, e-mail sau din folder.
 using System;
 using System.Collections.Specialized;

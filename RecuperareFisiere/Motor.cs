@@ -1,4 +1,4 @@
-// Motor de recuperare - Info PC Electric
+// Motor de recuperare - DigitalSecureIt
 // Acces STRICT DOAR-CITIRE la discul sursa. Scris in C# 5 (compilat la pornire de Windows PowerShell).
 using System;
 using System.Collections.Generic;

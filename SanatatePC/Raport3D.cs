@@ -1,4 +1,4 @@
-// Sanatate PC - Info PC Electric
+// Sanatate PC - DigitalSecureIt
 // Raportul 3D pentru client: o singura pagina .html (model 3D + date + three.js incluse), care merge si fara internet.
 // Istoricul verificarilor fiecarui calculator se pastreaza langa setari (pe stick sau in AppData).
 using System;
@@ -62,7 +62,7 @@ namespace InfoPcDisk
             return null;
         }
 
-        static List<Part> Parts(List<Section> secs, List<DiskReport> disks)
+        internal static List<Part> Parts(List<Section> secs, List<DiskReport> disks)
         {
             List<Part> list = new List<Part>();
             foreach (string key in Order)
@@ -152,7 +152,7 @@ namespace InfoPcDisk
             return new SnapHistory();
         }
 
-        static void Summary(List<Section> secs, out int score, out int level, out string verdict)
+        internal static void Summary(List<Section> secs, out int score, out int level, out string verdict)
         {
             score = 0; level = -1; verdict = "";
             Section s = Find(secs, "sumar");
@@ -322,7 +322,7 @@ namespace InfoPcDisk
         }
 
         // scriitor JSON minimal; caracterele < > & sunt scrise ca < etc., ca datele sa nu poata inchide <script>
-        class J
+        internal class J
         {
             readonly StringBuilder sb = new StringBuilder();
             readonly Stack<bool> first = new Stack<bool>();

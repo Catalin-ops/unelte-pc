@@ -1,4 +1,4 @@
-// Sanatate PC - Info PC Electric
+// Sanatate PC - DigitalSecureIt
 // Monitorizare live: incarcare procesor, RAM, placa video, disc si temperaturi, cu grafice.
 using System;
 using System.Collections.Generic;

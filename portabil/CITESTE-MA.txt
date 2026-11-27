@@ -1,5 +1,5 @@
 SANATATE PC - VERSIUNEA PORTABILA (fara instalare)
-Info PC Electric S.R.L. - www.infopc.ro
+DigitalSecureIt
 
 1. Copiaza folderul "Sanatate PC" pe stick (sau oriunde vrei).
 2. Porneste SanatatePC.exe direct de acolo (clic dreapta -> Ruleaza ca administrator,

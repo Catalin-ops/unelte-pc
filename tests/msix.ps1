@@ -1,7 +1,7 @@
 # Construieste pachetele MSIX pentru Microsoft Store si testeaza instalarea + pornirea variantei fara administrator.
 $ErrorActionPreference = 'Stop'
 Set-Location (Split-Path $PSScriptRoot)
-$ver = '1.5.0.0'
+$ver = '1.6.0.0'
 $kit = Get-ChildItem 'C:\Program Files (x86)\Windows Kits\10\bin' -Directory | Where-Object { $_.Name -match '^10\.' } | Sort-Object Name -Descending |
     ForEach-Object { Join-Path $_.FullName 'x64' } | Where-Object { Test-Path (Join-Path $_ 'makeappx.exe') } | Select-Object -First 1
 if (-not $kit) { throw 'Nu gasesc makeappx.exe (Windows SDK)' }
@@ -13,7 +13,7 @@ foreach ($l in Get-Content 'store\identitate.txt' -Encoding UTF8) { if ($l -matc
 $real = $id['Name'] -and $id['Publisher']
 $name = if ($real) { $id['Name'] } else { 'InfoPCElectric.SanatatePC.Test' }
 $pub = if ($real) { $id['Publisher'] } else { 'CN=InfoPcTest' }
-$pubName = if ($id['PublisherDisplayName']) { $id['PublisherDisplayName'] } else { 'Info PC Electric S.R.L.' }
+$pubName = if ($id['PublisherDisplayName']) { $id['PublisherDisplayName'] } else { 'DigitalSecureIt' }
 Write-Host "Identitate: $name / $pub / $pubName (reala: $real)"
 
 New-Item -ItemType Directory -Force 'dist\store' | Out-Null

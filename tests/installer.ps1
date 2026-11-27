@@ -1,7 +1,7 @@
 ﻿# Construieste installer-ul Sanatate PC, il testeaza (instalare + dezinstalare silentioasa) si face capturile pentru Store.
 $ErrorActionPreference = 'Stop'
 Set-Location (Split-Path $PSScriptRoot)
-$ver = '1.5.0'
+$ver = '1.6.0'
 
 # Inno Setup + traducerea romaneasca (neoficiala, din sursele Inno Setup)
 if (-not (Test-Path 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe')) { choco install innosetup -y --no-progress | Out-Null }
@@ -28,7 +28,7 @@ if ($p.ExitCode -ne 0) { throw "Instalarea a iesit cu codul $($p.ExitCode)" }
 if (-not (Test-Path $appLic)) { throw 'Installer-ul nu a preluat licenta de langa el' }
 Write-Host "Licenta preluata de installer: $appLic"
 Set-ItemProperty $appLic -Name Attributes -Value Normal; Remove-Item $appLic -Force
-$app = 'C:\Program Files\Info PC Electric\Sanatate PC\SanatatePC.exe'
+$app = 'C:\Program Files\DigitalSecureIt\Sanatate PC\SanatatePC.exe'
 if (-not (Test-Path $app)) { throw 'Dupa instalare nu exista SanatatePC.exe' }
 $lnk = Get-ChildItem "$env:ProgramData\Microsoft\Windows\Start Menu\Programs" -Filter '*.lnk' | Where-Object { $_.Name -like 'S*n*tate PC.lnk' }
 if (-not $lnk) { throw 'Lipseste scurtatura din meniul Start' }

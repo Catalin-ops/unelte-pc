@@ -1,4 +1,4 @@
-// Sanatate PC - Info PC Electric
+// Sanatate PC - DigitalSecureIt
 // Colecteaza informatii despre componente prin WMI, registru si jurnalele Windows. Doar citire.
 using System;
 using System.Collections.Generic;
@@ -306,7 +306,7 @@ namespace InfoPcDisk
             sec2.Add("Cip de securitate", tpm, tpm.StartsWith("TPM 2") && tpm.EndsWith("activ") ? "#4ADE80" : "#FBBF24");
             sec2.Add("Secure Boot", sb, sb.StartsWith("Activ") ? "#4ADE80" : "#FBBF24");
             sec2.SetLevel(-1, "Info");
-            if (!IsAdmin) sec2.Note(IsPackaged ? "Versiunea din Microsoft Store nu are drepturi de administrator, așa că nu poate citi cipul TPM. Versiunea portabilă de pe infopc.ro îl citește." : "Pornește aplicația ca administrator ca să poată citi cipul TPM.");
+            if (!IsAdmin) sec2.Note(IsPackaged ? "Versiunea din Microsoft Store nu are drepturi de administrator, așa că nu poate citi cipul TPM. Versiunea portabilă îl citește." : "Pornește aplicația ca administrator ca să poată citi cipul TPM.");
             else if (!tpm.StartsWith("TPM 2")) sec2.Note("Fără TPM 2.0 activ, Windows 11 nu se poate instala oficial. Se activează de obicei din BIOS (fTPM / PTT).");
             bool tpmOk = tpm.StartsWith("TPM 2") && tpm.EndsWith("activ");
             if (Regex.IsMatch(winCaption, @"Windows (XP|Vista|7|8)\b"))

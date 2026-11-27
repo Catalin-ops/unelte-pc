@@ -45,7 +45,7 @@ foreach ($sec in $secs) { $ls.Add($sec) }
 $dl = [Activator]::CreateInstance([Collections.Generic.List`1].MakeGenericType($asm.GetType('InfoPcDisk.DiskReport')))
 $rl = [Activator]::CreateInstance([Collections.Generic.List`1].MakeGenericType($asm.GetType('InfoPcDisk.Rec')))
 $stg = [Activator]::CreateInstance($asm.GetType('InfoPcDisk.Settings'))
-$stg.Company = 'Info PC Electric'; $stg.Technician = 'Test CI'; $stg.Dir = Join-Path $env:TEMP 'spc_test_istoric'
+$stg.Company = 'DigitalSecureIt'; $stg.Technician = 'Test CI'; $stg.Dir = Join-Path $env:TEMP 'spc_test_istoric'
 $r3 = $asm.GetType('InfoPcDisk.Raport3D')
 $html = $r3.GetMethod('Build').Invoke($null, [object[]]@($ls, $dl, $rl, $stg, 'Client test', 'Observatie de test', $true))
 $html = $r3.GetMethod('Build').Invoke($null, [object[]]@($ls, $dl, $rl, $stg, 'Client test', 'Observatie de test', $true))
@@ -55,6 +55,15 @@ if (-not $r3.GetProperty('HasModel').GetValue($null) -or $html.Length -lt 500000
 if (([regex]::Matches($html, '"hist":\[\{"d"')).Count -ne 1 -or ([regex]::Matches($html, '\{"d":"')).Count -ne 1) { throw 'Istoricul raportului 3D trebuie sa aiba o singura intrare pe zi' }
 New-Item -ItemType Directory -Force shots | Out-Null
 [IO.File]::WriteAllText((Join-Path (Resolve-Path shots) 'Raport3D_test.html'), $html, (New-Object Text.UTF8Encoding($false)))
+
+# monitorizare: datele trimise serverului (fara sa trimita nimic)
+$M = $asm.GetType('InfoPcDisk.Monitorizare')
+$cfg = [Activator]::CreateInstance($asm.GetType('InfoPcDisk.MonitorConfig'))
+$cfg.Server = 'https://test.invalid'; $cfg.Key = 'TEST'; $cfg.Label = 'PC test'
+$pl = $M.GetMethod('Payload', [Reflection.BindingFlags]'NonPublic,Static').Invoke($null, [object[]]@($ls, $dl, $rl, $cfg))
+Write-Host "Monitorizare: $($pl.Length) caractere"
+if ($pl -notmatch '"machine_id":"' -or $pl -notmatch '"day":\{"bsod":' -or $pl -notmatch '"parts":\[\{') { throw 'Datele de monitorizare sunt incomplete' }
+[IO.File]::WriteAllText((Join-Path (Resolve-Path shots) 'monitorizare_test.json'), $pl, (New-Object Text.UTF8Encoding($false)))
 
 # licenta: cheie valida, expirata, modificata
 $L = $asm.GetType('InfoPcDisk.Licensing')
@@ -94,10 +103,10 @@ $list = [Activator]::CreateInstance([Collections.Generic.List``1].MakeGenericTyp
 foreach ($sec in $secs) { $list.Add($sec) }
 $dl = [Activator]::CreateInstance([Collections.Generic.List``1].MakeGenericType($asm.GetType('InfoPcDisk.DiskReport')))
 $set = [Activator]::CreateInstance($asm.GetType('InfoPcDisk.Settings'))
-$set.Company = 'Info PC Electric S.R.L.'; $set.Phone = '0700 000 000'; $set.Email = 'contact@infopc.ro'; $set.Website = 'www.infopc.ro'; $set.Address = 'Rediu, jud. Neamt'; $set.Technician = 'Test CI'
+$set.Company = 'DigitalSecureIt'; $set.Phone = '0700 000 000'; $set.Email = 'catalin.muscalu92@gmail.com'; $set.Website = ''; $set.Address = 'Rediu, jud. Neamt'; $set.Technician = 'Test CI'
 $doc = $R.GetMethod('Build').Invoke($null, @($list, $dl, $v, $set, 'Client Test SRL', 'Recomand curatarea de praf si inlocuirea pastei termoconductoare.'))
 $pdfPath = [string](Join-Path (Get-Location).Path 'shots\raport_test.pdf')
-$pages = $R.GetMethod('SavePdf').Invoke($null, [object[]]@($doc, $pdfPath, [string]'Info PC Electric - Sanatate PC Pro'))
+$pages = $R.GetMethod('SavePdf').Invoke($null, [object[]]@($doc, $pdfPath, [string]'DigitalSecureIt - Sanatate PC Pro'))
 Write-Host "PDF: $pages pagini, $((Get-Item shots\raport_test.pdf).Length) octeti"
 if ($pages -lt 1) { throw 'PDF gol' }
 
@@ -147,7 +156,7 @@ Write-Host "Sectiune audit: $($asec.Summary)"
 $list.Add($asec)
 $adoc = $R.GetMethod('Build').Invoke($null, @($list, $dl, $v, $set, 'Client Audit SRL', ''))
 $apdf = [string](Join-Path (Get-Location).Path 'shots\raport_audit.pdf')
-$ap = $R.GetMethod('SavePdf').Invoke($null, [object[]]@($adoc, $apdf, [string]'Info PC Electric - audit'))
+$ap = $R.GetMethod('SavePdf').Invoke($null, [object[]]@($adoc, $apdf, [string]'DigitalSecureIt - audit'))
 Write-Host "PDF audit: $ap pagini"
 # fereastra de audit la final, randata in PNG (verificare vizuala)
 $aw = [Windows.Markup.XamlReader]::Load($asm.GetManifestResourceStream('Audit.xaml'))
@@ -189,7 +198,7 @@ Write-Host "Proiect: $($pj.Name) - $($pj.Sub)"
 if ($pj.Pcs.Count -ne 3) { throw "Proiectul ar trebui sa aiba 3 calculatoare, are $($pj.Pcs.Count)" }
 $pdoc = $R.GetMethod('BuildProject').Invoke($null, @($pj, $v, $set))
 $pdfP = [string](Join-Path (Get-Location).Path 'shots\raport_proiect.pdf')
-$np = $R.GetMethod('SavePdf').Invoke($null, [object[]]@($pdoc, $pdfP, [string]'Info PC Electric - Scoala Gimnaziala Test'))
+$np = $R.GetMethod('SavePdf').Invoke($null, [object[]]@($pdoc, $pdfP, [string]'DigitalSecureIt - Scoala Gimnaziala Test'))
 Write-Host "PDF proiect: $np pagini"
 
 # motorul de recuperare: test pe o imagine de disc sintetica (doar cautare profunda)

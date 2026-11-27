@@ -1,4 +1,4 @@
-// Sanatate PC - Info PC Electric
+// Sanatate PC - DigitalSecureIt
 // Fereastra principala: sumar vizual, componente, discuri, monitorizare live, licenta Free/Pro si raport PDF.
 using System;
 using System.Collections.Generic;
@@ -19,19 +19,19 @@ using System.Windows.Media.Imaging;
 
 [assembly: AssemblyTitle("Sănătate PC")]
 [assembly: AssemblyDescription("Starea componentelor calculatorului")]
-[assembly: AssemblyCompany("Info PC Electric S.R.L.")]
+[assembly: AssemblyCompany("DigitalSecureIt")]
 [assembly: AssemblyProduct("Sănătate PC")]
-[assembly: AssemblyCopyright("© 2026 Info PC Electric")]
-[assembly: AssemblyVersion("1.5.0.0")]
-[assembly: AssemblyInformationalVersion("1.5.0")]
-[assembly: AssemblyFileVersion("1.5.0.0")]
+[assembly: AssemblyCopyright("© 2026 DigitalSecureIt")]
+[assembly: AssemblyVersion("1.6.0.0")]
+[assembly: AssemblyInformationalVersion("1.6.0")]
+[assembly: AssemblyFileVersion("1.6.0.0")]
 
 namespace InfoPcDisk
 {
     public partial class MainApp
     {
         // adresa la care se cer ofertele / licentele Pro
-        const string SalesEmail = "catalin@infopc.ro";
+        const string SalesEmail = "catalin.muscalu92@gmail.com";
 
         Window win;
         ListBox nav, cardList, diskList, tileList;
@@ -53,6 +53,8 @@ namespace InfoPcDisk
         [STAThread]
         public static void Main()
         {
+            int? agent = Monitorizare.HandleCommandLine();
+            if (agent.HasValue) { Environment.Exit(agent.Value); return; }
             Application app = new Application();
             app.ShutdownMode = ShutdownMode.OnMainWindowClose;
             app.DispatcherUnhandledException += delegate(object s, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
@@ -163,6 +165,7 @@ namespace InfoPcDisk
             F<Button>("Save3DBtn").Click += delegate { SaveReport3D(); };
             settingsBtn.Click += delegate { ShowSettings(); };
             F<Button>("ProjectsBtn").Click += delegate { ShowProjects(); };
+            F<Button>("MonitorBtn").Click += delegate { ShowMonitoring(); };
             F<Button>("AuditBtn").Click += delegate { ShowAudit(); };
             actionBtn.Click += delegate { RunAction(); };
             bool started = false;
@@ -276,7 +279,7 @@ namespace InfoPcDisk
                 badge.Background = B("#1E293B");
                 proBtn.Visibility = Visibility.Visible;
                 ((TextBlock)((StackPanel)proBtn.Content).Children[1]).Text = "Activează Pro";
-                win.Title = "Sănătate PC (Free) — Info PC Electric";
+                win.Title = "Sănătate PC (Free) — DigitalSecureIt";
             }
             F<FrameworkElement>("FreeBanner").Visibility = Pro ? Visibility.Collapsed : Visibility.Visible;
             if (!Pro && lic != null && lic.Valid && lic.Expired)
@@ -468,46 +471,7 @@ namespace InfoPcDisk
                 List<Rec> recs = new List<Rec>();
                 try
                 {
-                    Recs.Reset();
-                    Status("Citesc jurnalul de stabilitate…");
-                    Stability st = Collect.ReadStability();
-                    Status("Citesc senzorii de temperatură…");
-                    Sensors sn = Collect.ReadSensors();
-                    Status("Citesc sistemul…");
-                    Section sys = Safe(delegate { return Collect.SystemInfo(st); }, "sistem", "Sistem și Windows", "");
-                    Status("Citesc procesorul…");
-                    Section cpu = Safe(delegate { return Collect.Cpu(sn, st); }, "cpu", "Procesor", "");
-                    Status("Citesc placa de bază…");
-                    Section board = Safe(delegate { return Collect.Board(sn); }, "placa", "Placă de bază", "");
-                    Status("Citesc memoria RAM…");
-                    Section ram = Safe(delegate { return Collect.Ram(st); }, "ram", "Memorie RAM", "");
-                    Status("Citesc placa video…");
-                    Section gpu = Safe(delegate { return Collect.Gpu(sn, st); }, "gpu", "Placă video", "");
-                    Status("Citesc discurile și datele SMART…");
-                    dl = ReadDisks();
-                    Section disk = DiskSection(dl, st);
-                    Status("Citesc monitoarele…");
-                    Section mon = Safe(delegate { return Collect.Monitors(); }, "monitor", "Monitoare", "");
-                    Section bat = null;
-                    try { bat = Collect.Battery(); } catch (Exception) { }
-                    Status("Citesc rețeaua…");
-                    Section net = Safe(delegate { return Collect.Network(); }, "retea", "Rețea", "");
-                    Section stab = Safe(delegate { return Collect.StabilitySection(st); }, "stabilitate", "Stabilitate (30 zile)", "");
-                    // rezultatul ultimului audit complet de pe acest PC (ultimele 24 de ore)
-                    Section aud = null;
-                    if (pro) { AuditResult ar = AuditResult.LoadRecent(); if (ar != null) aud = ar.BuildSection(); }
-
-                    secs.Add(cpu); secs.Add(board); secs.Add(ram); secs.Add(gpu); secs.Add(disk);
-                    secs.Add(mon);
-                    if (bat != null) secs.Add(bat);
-                    secs.Add(net); secs.Add(sys); secs.Add(stab);
-                    if (aud != null) secs.Add(aud);
-                    EnsureRecs(secs);
-                    recs = Recs.Take();
-                    Section todo = Recs.BuildSection(recs);
-                    secs.Insert(0, todo);
-                    if (!pro) foreach (Section s in secs) FreeSummary(s);
-                    secs.Insert(0, BuildSummary(secs, sys, pro));
+                    secs = CollectAll(pro, Status, out dl, out recs);
                     Section lv = new Section("live", "Monitorizare live", "");
                     lv.Summary = "Încărcare și temperaturi în timp real";
                     secs.Insert(2, lv);
@@ -562,6 +526,53 @@ namespace InfoPcDisk
             t.Start();
         }
 
+        // citeste toate componentele (folosit de fereastra principala si de agentul de monitorizare)
+        public static List<Section> CollectAll(bool pro, Action<string> status, out List<DiskReport> dl, out List<Rec> recs)
+        {
+            List<Section> secs = new List<Section>();
+            Recs.Reset();
+            status("Citesc jurnalul de stabilitate…");
+            Stability st = Collect.ReadStability();
+            status("Citesc senzorii de temperatură…");
+            Sensors sn = Collect.ReadSensors();
+            status("Citesc sistemul…");
+            Section sys = Safe(delegate { return Collect.SystemInfo(st); }, "sistem", "Sistem și Windows", "");
+            status("Citesc procesorul…");
+            Section cpu = Safe(delegate { return Collect.Cpu(sn, st); }, "cpu", "Procesor", "");
+            status("Citesc placa de bază…");
+            Section board = Safe(delegate { return Collect.Board(sn); }, "placa", "Placă de bază", "");
+            status("Citesc memoria RAM…");
+            Section ram = Safe(delegate { return Collect.Ram(st); }, "ram", "Memorie RAM", "");
+            status("Citesc placa video…");
+            Section gpu = Safe(delegate { return Collect.Gpu(sn, st); }, "gpu", "Placă video", "");
+            status("Citesc discurile și datele SMART…");
+            dl = ReadDisks();
+            Section disk = DiskSection(dl, st);
+            status("Citesc monitoarele…");
+            Section mon = Safe(delegate { return Collect.Monitors(); }, "monitor", "Monitoare", "");
+            Section bat = null;
+            try { bat = Collect.Battery(); } catch (Exception) { }
+            status("Citesc rețeaua…");
+            Section net = Safe(delegate { return Collect.Network(); }, "retea", "Rețea", "");
+            Section stab = Safe(delegate { return Collect.StabilitySection(st); }, "stabilitate", "Stabilitate (30 zile)", "");
+            // rezultatul ultimului audit complet de pe acest PC (ultimele 24 de ore)
+            Section aud = null;
+            if (pro) { AuditResult ar = AuditResult.LoadRecent(); if (ar != null) aud = ar.BuildSection(); }
+
+            secs.Add(cpu); secs.Add(board); secs.Add(ram); secs.Add(gpu); secs.Add(disk);
+            secs.Add(mon);
+            if (bat != null) secs.Add(bat);
+            secs.Add(net); secs.Add(sys); secs.Add(stab);
+            if (aud != null) secs.Add(aud);
+            EnsureRecs(secs);
+            recs = Recs.Take();
+            Section todo = Recs.BuildSection(recs);
+            secs.Insert(0, todo);
+            if (!pro) foreach (Section s in secs) FreeSummary(s);
+            secs.Insert(0, BuildSummary(secs, sys, pro));
+            return secs;
+        }
+
         // orice componenta cu Atentie / Problema are cel putin o lucrare in "Ce trebuie facut"
         static void EnsureRecs(List<Section> secs)
         {
@@ -603,7 +614,7 @@ namespace InfoPcDisk
             }
         }
 
-        Section BuildSummary(List<Section> secs, Section sys, bool pro)
+        static Section BuildSummary(List<Section> secs, Section sys, bool pro)
         {
             Section sum = new Section("sumar", "Sumar", "");
             sum.Description = "Starea fiecărei componente pe scurt.";
@@ -633,7 +644,7 @@ namespace InfoPcDisk
             if (head.NoteList.Count == 0) head.Note("Nicio componentă nu are probleme detectate. Ține totuși o copie de rezervă a datelor importante.");
             if (!Collect.IsAdmin)
                 head.Note(Collect.IsPackaged
-                    ? "Versiunea din Microsoft Store rulează fără drepturi de administrator: la HDD-uri și SSD-uri SATA vezi starea dată de Windows, fără tabelul SMART complet. Versiunea portabilă de pe infopc.ro citește tot."
+                    ? "Versiunea din Microsoft Store rulează fără drepturi de administrator: la HDD-uri și SSD-uri SATA vezi starea dată de Windows, fără tabelul SMART complet. Versiunea portabilă citește tot."
                     : "Aplicația nu rulează ca administrator, așa că unele date (SMART complet, TPM) nu pot fi citite. Pornește-o cu clic dreapta → Executare ca administrator.");
             foreach (Section s in secs)
             {

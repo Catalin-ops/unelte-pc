@@ -1,4 +1,4 @@
-// Sanatate PC - Info PC Electric
+// Sanatate PC - DigitalSecureIt
 // Fereastra Proiecte: institutii cu mai multe calculatoare, salvate pe stick, si raportul comun.
 using System;
 using System.Collections.Generic;
